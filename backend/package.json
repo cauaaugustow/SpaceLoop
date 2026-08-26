@@ -1,0 +1,28 @@
+{
+  "name": "spaceloop",
+  "version": "1.0.0",
+  "description": "Gestão de reservas de salas",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cauaaugustow/SpaceLoop.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cauaaugustow/SpaceLoop/issues"
+  },
+  "homepage": "https://github.com/cauaaugustow/SpaceLoop#readme",
+  "dependencies": {
+    "@prisma/client": "^7.10.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1"
+  }
+}
