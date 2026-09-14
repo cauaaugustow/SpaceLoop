@@ -8,5 +8,31 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id        Int      @id @default(autoincrement())
+  nome      String
+  email     String   @unique
+  senhaHash String
+  telefone  String?
+  cpf       String   @unique
+  criadoEm  DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+  eadmin    Boolean  @default(false) @map("e_admin")
+
+  @@map("usuarios")
+}
+
+
+model Sala{
+  id        Int      @id @default(autoincrement())
+  nome      String
+  capacidade Int
+  descricao String?
+  preco     Float @map("preco_locacao")
+  criadoEm  DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+  
+  @@map("salas")
 }
