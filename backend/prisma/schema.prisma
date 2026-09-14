@@ -20,6 +20,8 @@ model Usuario {
   criadoEm  DateTime @default(now())
   atualizadoEm DateTime @updatedAt
   eadmin    Boolean  @default(false) @map("e_admin")
+  reservas Reserva[] 
+
 
   @@map("usuarios")
 }
@@ -33,6 +35,24 @@ model Sala{
   preco     Float @map("preco_locacao")
   criadoEm  DateTime @default(now())
   atualizadoEm DateTime @updatedAt
-  
+  reservas Reserva[]
+
+
   @@map("salas")
+}
+
+
+model Reserva{
+  id        Int      @id @default(autoincrement())
+  dia       DateTime
+  turno     String
+  criadoEm  DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+  idUsuario Int @map("id_usuario")
+  idSala Int @map("id_sala")
+  usuario Usuario @relation(fields: [idUsuario], references: [id], onDelete: Cascade)
+  sala Sala @relation(fields: [idSala], references: [id], onDelete: Cascade)
+
+
+  @@map("reservas")
 }
