@@ -2,7 +2,7 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../src/generated/prisma"
 }
 
@@ -53,6 +53,6 @@ model Reserva{
   usuario Usuario @relation(fields: [idUsuario], references: [id], onDelete: Cascade)
   sala Sala @relation(fields: [idSala], references: [id], onDelete: Cascade)
 
-
+  @@unique([idSala, dia, turno])
   @@map("reservas")
 }
