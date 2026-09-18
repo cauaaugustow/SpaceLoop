@@ -17,13 +17,13 @@ export async function buscarUserPorEmail(email) {
     })
 }
 
-export async function buscarUserPorCpf(email) {
+export async function buscarUserPorCpf(cpf) {
     return prisma.usuario.findUnique({
         where: {cpf}
     })
 }
 
-export async function criarUser(email) {
+export async function criarUser(dados) {
     return prisma.usuario.create({
         data: dados,
         select: selectUser
