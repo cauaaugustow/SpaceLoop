@@ -1,7 +1,7 @@
 import prisma from "../config/prisma.js";
 import { buscarUserPorCpf } from "../repositories/userRepository";
 import { buscarUserPorEmail } from "../repositories/userRepository";
-import { criarUser } from "../repositories/userRepository";
+import { criarUser as criarUserRepository } from "../repositories/userRepository";
 import { hashearSenha } from "./senhaService";
 
 const normalizarEmail = (email) =>{
@@ -31,7 +31,7 @@ export async function criarUser(dados) {
         throw erro
     }
 
-    return criarUser({
+    return criarUserRepository({
         ...dados,
         cpf,
         senhaHash: await hashearSenha(dados.senha)
