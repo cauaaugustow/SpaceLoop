@@ -1,39 +1,70 @@
-import prisma from "../config/prisma.js";
-import { buscarUserPorCpf } from "../repositories/userRepository";
-import { buscarUserPorEmail } from "../repositories/userRepository";
-import { criarUser as criarUserRepository } from "../repositories/userRepository";
-import { hashearSenha } from "./senhaService";
+import {
+  atualizarUser as atualizarUserRepository,
+  buscarUserPorCpf,
+  buscarUserPorEmail,
+  buscarUserPorId,
+  criarUser as criarUserRepository,
+  deletarUser as deletarUserRepository,
+  listarUsers as listarUsersRepository,
+} from "../repositories/userRepository.js";
+import { hashearSenha } from "./senhaService.js";
 
-const normalizarEmail = (email) =>{
-    return email.trim().toLowerCase();
-}
+const normalizarEmail = (email) => email.trim().toLowerCase();
+const normalizarCpf = (cpf) => cpf.replace(/\D/g, "");
 
-const conflitoEmail = (erro)=>{
-    return erro.code === "P2002" && erro.meta.target.includes("email");
+function criarErro(mensagem, statusCode) {
+  const erro = new Error(mensagem);
+  erro.statusCode = statusCode;
+  return erro;
 }
 
 export async function criarUser(dados) {
-    const cpf = dados.cpf.replace(/\D/g, "")
+  const { senha, ...dadosDoUsuario } = dados;
+  const email = normalizarEmail(dados.email);
+  const cpf = normalizarCpf(dados.cpf);
 
-    const userComCpf = await buscarUserPorCpf(cpf)
+  if (await buscarUserPorCpf(cpf)) throw criarErro("CPF já cadastrado", 409);
+  if (await buscarUserPorEmail(email)) throw criarErro("E-mail já cadastrado", 409);
 
-    if(userComCpf){
-        const erro = new Error('Cpf já cadastrado')
-        erro.statusCode = 409
-        throw erro
-    }
+  return criarUserRepository({
+    ...dadosDoUsuario,
+    email,
+    cpf,
+    senhaHash: await hashearSenha(senha),
+  });
+}
 
-    const userComEmail = await buscarUserPorEmail(dados.email)
+export async function getAllUsers() {
+  return listarUsersRepository();
+}
 
-    if(userComEmail){
-        const erro = new Error("Email já cadastrado")
-        erro.statusCode = 409
-        throw erro
-    }
+export async function getUsersById(id) {
+  const usuario = await buscarUserPorId(id);
+  if (!usuario) throw criarErro("Usuário não encontrado", 404);
+  return usuario;
+}
 
-    return criarUserRepository({
-        ...dados,
-        cpf,
-        senhaHash: await hashearSenha(dados.senha)
-    })
+export async function updateUser(id, dados) {
+  const usuario = await getUsersById(id);
+  const dadosAtualizados = { ...dados };
+
+  if (dados.email) {
+    dadosAtualizados.email = normalizarEmail(dados.email);
+    const existente = await buscarUserPorEmail(dadosAtualizados.email);
+    if (existente && existente.id !== id) throw criarErro("E-mail já cadastrado", 409);
+  }
+
+  if (dados.cpf) {
+    dadosAtualizados.cpf = normalizarCpf(dados.cpf);
+    const existente = await buscarUserPorCpf(dadosAtualizados.cpf);
+    if (existente && existente.id !== id) throw criarErro("CPF já cadastrado", 409);
+  }
+
+  return atualizarUserRepository(id, dadosAtualizados);
+}
+
+export async function deleteUser(id) {
+  await getUsersById(id);
+  await deletarUserRepository(id);
+  return { success: true, message: "Usuário deletado com sucesso" };
 }
