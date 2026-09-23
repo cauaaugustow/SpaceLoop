@@ -1,10 +1,42 @@
-import {criarUsuarioSchema} from '../schema/userSchema.js'
-import { criarUser } from '../services/usuarioService.js'
+import { atualizarUsuarioSchema, criarUsuarioSchema } from "../schema/userSchema.js";
+import {
+  criarUser,
+  deleteUser,
+  getAllUsers,
+  getUsersById,
+  updateUser,
+} from "../services/usuarioService.js";
 
-export async function cadastrarUsuario(res,req) {
-    const resultado = criarUsuarioSchema.parse(req.body)
+function idDoParametro(req) {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) {
+    const erro = new Error("ID inválido");
+    erro.statusCode = 400;
+    throw erro;
+  }
+  return id;
+}
 
-    const usuario = await criarUser(resultado);
-    res.status(201).json(usuario)
+export async function cadastrarUsuario(req, res) {
+  const dados = criarUsuarioSchema.parse(req.body);
+  const usuario = await criarUser(dados);
+  res.status(201).json(usuario);
+}
+
+export async function listarUsuarios(req, res) {
+  res.json(await getAllUsers());
+}
+
+export async function buscarUsuario(req, res) {
+  res.json(await getUsersById(idDoParametro(req)));
+}
+
+export async function atualizarUsuario(req, res) {
+  const dados = atualizarUsuarioSchema.parse(req.body);
+  res.json(await updateUser(idDoParametro(req), dados));
+}
+
+export async function deletarUsuario(req, res) {
+  res.json(await deleteUser(idDoParametro(req)));
 }
 
