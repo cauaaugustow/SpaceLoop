@@ -1,4 +1,3 @@
-import { atualizarUsuarioSchema, criarUsuarioSchema } from "../schema/userSchema.js";
 import {
   criarUser,
   deleteUser,
@@ -18,8 +17,7 @@ function idDoParametro(req) {
 }
 
 export async function cadastrarUsuario(req, res) {
-  const dados = criarUsuarioSchema.parse(req.body);
-  const usuario = await criarUser(dados);
+  const usuario = await criarUser(req.body);
   res.status(201).json(usuario);
 }
 
@@ -32,8 +30,7 @@ export async function buscarUsuario(req, res) {
 }
 
 export async function atualizarUsuario(req, res) {
-  const dados = atualizarUsuarioSchema.parse(req.body);
-  res.json(await updateUser(idDoParametro(req), dados));
+  res.json(await updateUser(idDoParametro(req), req.body));
 }
 
 export async function deletarUsuario(req, res) {
