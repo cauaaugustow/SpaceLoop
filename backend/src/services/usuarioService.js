@@ -8,6 +8,7 @@ import {
   listarUsers as listarUsersRepository,
 } from "../repositories/userRepository.js";
 import { hashearSenha } from "./senhaService.js";
+import { atualizarUsuarioSchema, criarUsuarioSchema } from "../schema/userSchema.js";
 
 const normalizarEmail = (email) => email.trim().toLowerCase();
 const normalizarCpf = (cpf) => cpf.replace(/\D/g, "");
@@ -19,9 +20,10 @@ function criarErro(mensagem, statusCode) {
 }
 
 export async function criarUser(dados) {
-  const { senha, ...dadosDoUsuario } = dados;
-  const email = normalizarEmail(dados.email);
-  const cpf = normalizarCpf(dados.cpf);
+  const dadosValidados = criarUsuarioSchema.parse(dados);
+  const { senha, ...dadosDoUsuario } = dadosValidados;
+  const email = normalizarEmail(dadosValidados.email);
+  const cpf = normalizarCpf(dadosValidados.cpf);
 
   if (await buscarUserPorCpf(cpf)) throw criarErro("CPF já cadastrado", 409);
   if (await buscarUserPorEmail(email)) throw criarErro("E-mail já cadastrado", 409);
@@ -45,17 +47,18 @@ export async function getUsersById(id) {
 }
 
 export async function updateUser(id, dados) {
+  const dadosValidados = atualizarUsuarioSchema.parse(dados);
   const usuario = await getUsersById(id);
-  const dadosAtualizados = { ...dados };
+  const dadosAtualizados = { ...dadosValidados };
 
-  if (dados.email) {
-    dadosAtualizados.email = normalizarEmail(dados.email);
+  if (dadosValidados.email) {
+    dadosAtualizados.email = normalizarEmail(dadosValidados.email);
     const existente = await buscarUserPorEmail(dadosAtualizados.email);
     if (existente && existente.id !== id) throw criarErro("E-mail já cadastrado", 409);
   }
 
-  if (dados.cpf) {
-    dadosAtualizados.cpf = normalizarCpf(dados.cpf);
+  if (dadosValidados.cpf) {
+    dadosAtualizados.cpf = normalizarCpf(dadosValidados.cpf);
     const existente = await buscarUserPorCpf(dadosAtualizados.cpf);
     if (existente && existente.id !== id) throw criarErro("CPF já cadastrado", 409);
   }

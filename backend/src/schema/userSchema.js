@@ -27,6 +27,18 @@ export const criarUsuarioSchema = z.object({
     .regex(/^\d{3}\.?\d{3}\.?\d{3}-?\d{2}$/, "CPF inválido"),
 });
 
+export const authUsuarioSchema = z.object({
+  email: z
+    .string()
+    .trim()
+    .email("Informe um e-mail válido")
+    .transform((email) => email.toLowerCase()),
+
+  senha: z
+    .string()
+    .min(8, "A senha precisa ter ao menos 8 caracteres"),
+});
+
 export const atualizarUsuarioSchema = criarUsuarioSchema
   .omit({ senha: true })
   .partial()
