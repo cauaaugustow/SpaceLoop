@@ -9,15 +9,10 @@ import {
 } from "../repositories/userRepository.js";
 import { hashearSenha } from "./senhaService.js";
 import { atualizarUsuarioSchema, criarUsuarioSchema } from "../schema/userSchema.js";
+import { ErroDeDominio } from "../error/erroDeDominio.js";
 
 const normalizarEmail = (email) => email.trim().toLowerCase();
 const normalizarCpf = (cpf) => cpf.replace(/\D/g, "");
-
-function criarErro(mensagem, statusCode) {
-  const erro = new Error(mensagem);
-  erro.statusCode = statusCode;
-  return erro;
-}
 
 export async function criarUser(dados) {
   const dadosValidados = criarUsuarioSchema.parse(dados);
@@ -25,8 +20,8 @@ export async function criarUser(dados) {
   const email = normalizarEmail(dadosValidados.email);
   const cpf = normalizarCpf(dadosValidados.cpf);
 
-  if (await buscarUserPorCpf(cpf)) throw criarErro("CPF já cadastrado", 409);
-  if (await buscarUserPorEmail(email)) throw criarErro("E-mail já cadastrado", 409);
+  if (await buscarUserPorCpf(cpf)) throw new ErroDeDominio("CPF já cadastrado", 409);
+  if (await buscarUserPorEmail(email)) throw new ErroDeDominio("E-mail já cadastrado", 409);
 
   return criarUserRepository({
     ...dadosDoUsuario,
