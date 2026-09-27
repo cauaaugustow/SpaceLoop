@@ -6,11 +6,13 @@ import {
   deletarUsuario,
   listarUsuarios,
 } from "../controllers/userController.js";
+import { validate } from "../middlewares/validate.js";
+import { criarUsuarioSchema } from "../schema/userSchema.js";
 
 export const userRoutes = Router();
 
-userRoutes.post("/usuario", cadastrarUsuario);
+userRoutes.post("/usuario", validate(criarUsuarioSchema),cadastrarUsuario);
 userRoutes.get("/usuarios", listarUsuarios);
 userRoutes.get("/usuarios/:id", buscarUsuario);
-userRoutes.patch("/usuarios/:id", atualizarUsuario);
+userRoutes.patch("/usuarios/:id", validate(criarUsuarioSchema),atualizarUsuario);
 userRoutes.delete("/usuarios/:id", deletarUsuario);
