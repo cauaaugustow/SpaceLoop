@@ -5,13 +5,12 @@ import {
   getUsersById,
   updateUser,
 } from "../services/usuarioService.js";
+import { ErroDeDominio } from "../error/erroDeDominio.js";
 
 function idDoParametro(req) {
   const id = Number(req.params.id);
   if (!Number.isInteger(id) || id <= 0) {
-    const erro = new Error("ID inválido");
-    erro.statusCode = 400;
-    throw erro;
+    throw new ErroDeDominio("ID inválido", 400);
   }
   return id;
 }
