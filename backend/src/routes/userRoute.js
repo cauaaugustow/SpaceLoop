@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { authValidate } from "../middlewares/authValidate.js"
 import {
   atualizarUsuario,
   buscarUsuario,
@@ -15,6 +16,9 @@ import {
 export const userRoutes = Router();
 
 userRoutes.post("/usuario", validate(criarUsuarioSchema),cadastrarUsuario);
+
+userRoutes.use(authValidate)
+
 userRoutes.get("/usuarios", listarUsuarios);
 userRoutes.get("/usuarios/:id", buscarUsuario);
 userRoutes.patch("/usuarios/:id", validate(atualizarUsuarioSchema), atualizarUsuario);
