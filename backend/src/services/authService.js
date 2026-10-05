@@ -1,6 +1,6 @@
 ﻿import { ErroDeDominio } from "../error/erroDeDominio.js";
 import { buscarUserPorAuth } from "../repositories/authRepository.js";
-import { authUsuarioSchema } from "../schema/userSchema.js";
+import { authUsuarioSchema } from "../schema/authSchema.js";
 import { compararSenha } from "./senhaService.js";
 
 export async function authUsuario(email, senha) {

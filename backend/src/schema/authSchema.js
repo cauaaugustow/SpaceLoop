@@ -11,10 +11,3 @@ export const authUsuarioSchema = z.object({
     .string()
     .min(8, "A senha precisa ter ao menos 8 caracteres"),
 });
-
-export const atualizarUsuarioSchema = criarUsuarioSchema
-  .omit({ senha: true })
-  .partial()
-  .refine((dados) => Object.keys(dados).length > 0, {
-    message: "Informe ao menos um campo para atualizar",
-  });

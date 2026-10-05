@@ -1,9 +1,8 @@
 import { Router } from "express";
-import { autenticarUsuario } from "../controllers/authController";
-import { userRoutes } from "./userRoute";
-import { validate } from "../middlewares/validate";
-import { authUsuarioSchema } from "../schema/authSchema";
+import { autenticarUsuario } from "../controllers/authController.js";
+import { validate } from "../middlewares/validate.js";
+import { authUsuarioSchema } from "../schema/authSchema.js";
 
-export const authRoutes = Router()
+export const authRoutes = Router();
 
-userRoutes.post("/login", validate(authUsuarioSchema), autenticarUsuario)
+authRoutes.post("/login", validate(authUsuarioSchema), autenticarUsuario);

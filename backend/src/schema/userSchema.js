@@ -26,3 +26,10 @@ export const criarUsuarioSchema = z.object({
     .trim()
     .regex(/^\d{3}\.?\d{3}\.?\d{3}-?\d{2}$/, "CPF inválido"),
 });
+
+export const atualizarUsuarioSchema = criarUsuarioSchema
+  .omit({ senha: true })
+  .partial()
+  .refine((dados) => Object.keys(dados).length > 0, {
+    message: "Informe ao menos um campo para atualizar",
+  });

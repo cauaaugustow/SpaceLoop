@@ -37,7 +37,7 @@ export async function getAllUsers() {
 
 export async function getUsersById(id) {
   const usuario = await buscarUserPorId(id);
-  if (!usuario) throw criarErro("Usuário não encontrado", 404);
+  if (!usuario) throw new ErroDeDominio("Usuário não encontrado", 404);
   return usuario;
 }
 
@@ -49,13 +49,17 @@ export async function updateUser(id, dados) {
   if (dadosValidados.email) {
     dadosAtualizados.email = normalizarEmail(dadosValidados.email);
     const existente = await buscarUserPorEmail(dadosAtualizados.email);
-    if (existente && existente.id !== id) throw criarErro("E-mail já cadastrado", 409);
+    if (existente && existente.id !== id) {
+      throw new ErroDeDominio("E-mail já cadastrado", 409);
+    }
   }
 
   if (dadosValidados.cpf) {
     dadosAtualizados.cpf = normalizarCpf(dadosValidados.cpf);
     const existente = await buscarUserPorCpf(dadosAtualizados.cpf);
-    if (existente && existente.id !== id) throw criarErro("CPF já cadastrado", 409);
+    if (existente && existente.id !== id) {
+      throw new ErroDeDominio("CPF já cadastrado", 409);
+    }
   }
 
   return atualizarUserRepository(id, dadosAtualizados);
