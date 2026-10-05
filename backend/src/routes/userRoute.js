@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { authValidate } from "../middlewares/authValidate.js"
+import { authValidate } from "../middlewares/authValidate.js";
 import {
   atualizarUsuario,
   buscarUsuario,
