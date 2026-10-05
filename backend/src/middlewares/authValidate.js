@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 
-export function exigirAutenticacao(req, res, next) {
+export function authValidate(req, res, next) {
   const authorization = req.headers.authorization;
   const token = authorization?.startsWith("Bearer ")
     ? authorization.slice(7)
