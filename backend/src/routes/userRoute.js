@@ -17,9 +17,7 @@ export const userRoutes = Router();
 
 userRoutes.post("/usuario", validate(criarUsuarioSchema),cadastrarUsuario);
 
-userRoutes.use(authValidate)
-
-userRoutes.get("/usuarios", listarUsuarios);
-userRoutes.get("/usuarios/:id", buscarUsuario);
-userRoutes.patch("/usuarios/:id", validate(atualizarUsuarioSchema), atualizarUsuario);
-userRoutes.delete("/usuarios/:id", deletarUsuario);
+userRoutes.get("/usuarios", authValidate, listarUsuarios);
+userRoutes.get("/usuarios/:id", authValidate, buscarUsuario);
+userRoutes.patch("/usuarios/:id", authValidate, validate(atualizarUsuarioSchema), atualizarUsuario);
+userRoutes.delete("/usuarios/:id", authValidate, deletarUsuario);
