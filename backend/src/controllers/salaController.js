@@ -29,7 +29,7 @@ export async function buscarSalas(req, res) {
   res.json(await buscarSalaPorId(idDoParametro(req)));
 }
 
-export async function atualizarUsuario(req, res) {
+export async function atualizarSalas(req, res) {
   res.json(await atualizarSala(idDoParametro(req), req.body));
 }
 
