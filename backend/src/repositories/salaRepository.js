@@ -23,8 +23,19 @@ export async function buscarSalaPorId(id) {
     })
 }
 
-export async function listarSalas() {
-    return prisma.sala.findMany({select: selectSalas});
+export async function listarSalas({inicio,fim,turno} = {}) {
+    const where = inicio
+    ?{
+        reservas: {
+            none:{
+                dia: {gte: inicio, lt: fim},
+                turno,
+            },
+        },
+    }
+    : {};
+
+    return prisma.sala.findMany({where, select: selectSalas})
 }
 
 export async function atualizarSalas(id, dados) {
