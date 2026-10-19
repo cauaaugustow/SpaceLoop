@@ -10,21 +10,25 @@ export const selectSalas = {
 }
 
 export async function criarSala(dados){
-    return prisma.usuario.create({
+    return prisma.sala.create({
         data: dados,
         select: selectSalas
     })
 }
 
 export async function buscarSalaPorId(id) {
-    return prisma.usuario.findUnique({
+    return prisma.sala.findUnique({
         where: {id},
         select: selectSalas
     })
 }
 
+export async function listarSalas() {
+    return prisma.sala.findMany({select: selectSalas});
+}
+
 export async function atualizarSalas(id, dados) {
-    return prisma.usuario.update({
+    return prisma.sala.update({
         where: {id},
         data: dados,
         select: selectSalas
@@ -32,7 +36,7 @@ export async function atualizarSalas(id, dados) {
 }
 
 export async function deletarSalas(id) {
-    return prisma.usuario.delete({
+    return prisma.sala.delete({
         where: {id},
         select: selectSalas
     })
