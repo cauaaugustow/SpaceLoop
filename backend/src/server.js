@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import { userRoutes } from './routes/userRoute.js';
 import { authRoutes } from './routes/authRoute.js';
+import { salaRoutes } from './routes/salaRoute.js';
 dotenv.config();
 
 const app = express();
@@ -13,6 +14,7 @@ app.use(cors());
 app.use(express.json());
 app.use(userRoutes);
 app.use(authRoutes);
+app.use(salaRoutes);
 
 app.use((erro, req, res, next) => {
   if (erro.name === 'ZodError') {
