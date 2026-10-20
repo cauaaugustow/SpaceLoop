@@ -1,7 +1,6 @@
 import{
     criarSala,
     getAllSalas,
-    listarSalas,
     buscarSalaPorId,
     atualizarSala,
     deletarSala
