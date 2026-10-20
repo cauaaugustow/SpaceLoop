@@ -4,21 +4,18 @@ import {
     listarSalas as listarSalasRepository,
     atualizarSalas as atualizarSalasRepository,
     deletarSalas as deletarSalasRepository
- } from "../repositories/salaRepository";
-import { ErroDeDominio } from "../error/erroDeDominio";
-import { criarSalaSchema, updateSalaSchema } from "../schema/salaSchema";
+ } from "../repositories/salaRepository.js";
+import { ErroDeDominio } from "../error/erroDeDominio.js";
+import { criarSalaSchema, updateSalaSchema } from "../schema/salaSchema.js";
 
 
 export async function criarSala(dados) {
-    const dadosValidos = criarSalaSchema.parse(dados);
-    const { nome, capacidade, descricao, precoLocacao } = dadosValidos;
+    const {nome, capacidade, descricao, precoLocacao} = criarSalaSchema.parse(dados);
     return criarSalaRepository({
-        dados:{
-            nome,
-            capacidade,
-            descricao: descricao || null,
-            precoLocacao,
-        }
+        nome,
+        capacidade,
+        descricao: descricao ?? null,
+        preco: precoLocacao,
     });
 }
 
@@ -74,3 +71,5 @@ export async function deletarSala(id) {
     return {success: true, message: "Sala deletada com sucesso!"};
     
 }
+
+//FAZER TESTES PARA O SERVICE DE SALA, TESTANDO TODOS OS CASOS DE ERRO POSSÍVEIS, COMO ID INVÁLIDO, DADOS INVÁLIDOS, SALA NÃO ENCONTRADA, ETC.
