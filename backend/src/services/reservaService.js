@@ -22,7 +22,7 @@ export async function criarReserva(dados) {
     try{
         return await criarReservaRepository({ idUsuario, idSala, dia, turno });
     }catch (erro){
-        if(erro.code = "P2002"){
+        if(erro.code === "P2002"){
             throw new ErroDeDominio("Esta sala já possui uma reserva", 409)
         }
         throw erro;
@@ -52,7 +52,7 @@ export async function AtualizarReserva(id, dados) {
         try{
         return await atualizarReservasRepository({id, dadosValidaos});
     }catch (erro){
-        if(erro.code = "P2002"){
+        if(erro.code === "P2002"){
             throw new ErroDeDominio("Esta sala já possui uma reserva", 409)
         }
         throw erro;
