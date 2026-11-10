@@ -17,12 +17,10 @@ export const criarReservaSchema = z.object({
     (turno) => turno.toUpperCase()
   ),
 
-  idUsuario: z.coerce.number().int().positive(),
   idSala: z.coerce.number().int().positive(),
-});
+}).strict();
 
 export const atualizarReservaSchema = criarReservaSchema
-  .omit({ idUsuario: true })
   .partial()
   .refine((dados) => Object.keys(dados).length > 0, {
     message: "Informe ao menos um campo para atualizar",

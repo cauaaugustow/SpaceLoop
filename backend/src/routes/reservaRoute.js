@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { authValidate } from "../middlewares/authValidate.js";
 import {
     criarReserva,
     listarReservas,
@@ -8,6 +9,8 @@ import {
 } from "../controllers/reservaController.js"
 
 export const reservaRoutes = Router();
+
+reservaRoutes.use(authValidate);
 
 reservaRoutes.post("/reservas", criarReserva);
 reservaRoutes.get("/reservas", listarReservas);
