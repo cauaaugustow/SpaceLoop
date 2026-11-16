@@ -6,11 +6,13 @@ import {
     atualizarSalas,
     deletarSalas
 } from "../controllers/salaController.js"
+import { authValidate } from "../middlewares/authValidate.js";
+import { exigirAdmin } from "../middlewares/exigirAdmin.js";
 
 export const salaRoutes = Router();
 
-salaRoutes.post("/salas", criarSalas);
-salaRoutes.get("/salas", listarSalas);
+salaRoutes.post("/salas", authValidate, exigirAdmin, criarSalas);
+salaRoutes.get("/salas",  listarSalas);
 salaRoutes.get("/salas/:id", buscarSalas);
-salaRoutes.patch("/salas/:id",  atualizarSalas);
-salaRoutes.delete("/salas/:id", deletarSalas);
+salaRoutes.patch("/salas/:id", authValidate, exigirAdmin ,atualizarSalas);
+salaRoutes.delete("/salas/:id", authValidate, exigirAdmin, deletarSalas);
