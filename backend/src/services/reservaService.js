@@ -26,21 +26,22 @@ export async function criarReserva(dados, idUsuario) {
   }
 }
 
-export async function getAllReservas() {
-  return listaReservasRepository();
+export async function getAllReservas(idUsuario, eadmin) {
+  return listaReservasRepository(idUsuario, eadmin);
 }
 
-export async function buscarReservaPorId(id) {
+export async function buscarReservaPorId(id, idUsuario, eadmin) {
   const reserva = await buscarReservaPorIdRepository(id);
   if (!reserva) throw new ErroDeDominio("Reserva não encontrada", 404);
+
+  if (!eadmin && reserva.idUsuario !== idUsuario) {
+    throw new ErroDeDominio("Acesso negado", 403);
+  }
   return reserva;
 }
 
-export async function atualizarReserva(id, dados, idUsuario) {
-  const reserva = await buscarReservaPorId(id);
-  if (reserva.idUsuario !== idUsuario) {
-    throw new ErroDeDominio("Você não pode alterar essa reserva", 403);
-  }
+export async function atualizarReserva(id, dados, idUsuario, eadmin) {
+  await buscarReservaPorId(id, idUsuario, eadmin);
 
   const dadosValidados = atualizarReservaSchema.parse(dados);
   if (dadosValidados.idSala) {
@@ -60,11 +61,8 @@ export async function atualizarReserva(id, dados, idUsuario) {
   }
 }
 
-export async function deletarReserva(id, idUsuario) {
-  const reserva = await buscarReservaPorId(id);
-  if (reserva.idUsuario !== idUsuario) {
-    throw new ErroDeDominio("Você não pode excluir essa reserva", 403);
-  }
+export async function deletarReserva(id, idUsuario, eadmin) {
+  await buscarReservaPorId(id, idUsuario, eadmin);
 
   try {
     await deletarReservaRepository(id);

@@ -24,22 +24,34 @@ function idDoUsuario(req) {
 }
 
 export async function criarReserva(req, res) {
-  const reserva = await criarReservaService(req.body, idDoUsuario(req));
+  let idUsuario = idDoUsuario(req);
+  let dados = req.body;
+
+  if (req.user.eadmin && dados && Object.hasOwn(dados, "idUsuario")) {
+    const { idUsuario: idSolicitado, ...dadosReserva } = dados;
+    idUsuario = Number(idSolicitado);
+    if (!Number.isSafeInteger(idUsuario) || idUsuario <= 0) {
+      throw new ErroDeDominio("ID de usuário inválido", 400);
+    }
+    dados = dadosReserva;
+  }
+
+  const reserva = await criarReservaService(dados, idUsuario);
   res.status(201).json(reserva);
 }
 
 export async function listarReservas(req, res) {
-  res.json(await getAllReservas());
+  res.json(await getAllReservas(idDoUsuario(req), req.user.eadmin));
 }
 
 export async function buscarReservas(req, res) {
-  res.json(await buscarReservaPorId(idDoParametro(req)));
+  res.json(await buscarReservaPorId(idDoParametro(req), idDoUsuario(req), req.user.eadmin));
 }
 
 export async function atualizarReservas(req, res) {
-  res.json(await atualizarReserva(idDoParametro(req), req.body, idDoUsuario(req)));
+  res.json(await atualizarReserva(idDoParametro(req), req.body, idDoUsuario(req), req.user.eadmin));
 }
 
 export async function deletarReservas(req, res) {
-  res.json(await deletarReserva(idDoParametro(req), idDoUsuario(req)));
+  res.json(await deletarReserva(idDoParametro(req), idDoUsuario(req), req.user.eadmin));
 }

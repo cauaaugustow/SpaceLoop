@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import AccountPage from './pages/AccountPage.jsx'
+import AdminPage from './pages/AdminPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import RegisterPage from './pages/RegisterPage.jsx'
 import { authService } from './services/authService.js'
@@ -11,12 +12,15 @@ export default function App() {
   const [notice, setNotice] = useState('')
 
   if (user) {
-    return <AccountPage user={user} onLogout={() => {
+    const onLogout = () => {
       authService.logout()
       setUser(null)
       setPage('login')
       setLoginEmail('')
-    }} />
+    }
+    return user.eadmin
+      ? <AdminPage user={user} onLogout={onLogout} />
+      : <AccountPage user={user} onLogout={onLogout} />
   }
 
   if (page === 'register') {

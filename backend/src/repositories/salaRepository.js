@@ -4,6 +4,7 @@ export const selectSalas = {
     id: true,
     nome: true,
     capacidade: true,
+    descricao: true,
     preco: true,
     criadoEm: true,
     atualizadoEm: true

@@ -24,8 +24,11 @@ export async function buscarReservaPorId(id){
     })
 }
 
-export async function listaReservas() {
-    return prisma.reserva.findMany({select: selectReservas})
+export async function listaReservas(idUsuario, eadmin){
+    return prisma.reserva.findMany({
+        where: eadmin ? {} : {idUsuario},
+        select: selectReservas
+    })
 }
 
 export async function atualizarReserva(id, dados){

@@ -21,6 +21,7 @@ export async function authUsuario(email, senha) {
     id: usuario.id,
     nome: usuario.nome,
     email: usuario.email,
+    eadmin: usuario.eadmin,
     criadoEm: usuario.criadoEm,
   };
 }

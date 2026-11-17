@@ -54,10 +54,12 @@ export async function buscarSalaPorId(id) {
 
 export async function atualizarSala(id,dados){
     const dadosValidos = updateSalaSchema.parse(dados)
-    const sala = await buscarSalaPorId(id);
     const dadosAtualizados = {...dadosValidos};
-
-    if(!sala) throw new ErroDeDominio("Sala não encontrada.",400);
+    await buscarSalaPorId(id);
+    if (dadosValidos.precoLocacao !== undefined) {
+        dadosAtualizados.preco = dadosValidos.precoLocacao;
+        delete dadosAtualizados.precoLocacao;
+    }
 
     return atualizarSalasRepository(id, dadosAtualizados);
 }
