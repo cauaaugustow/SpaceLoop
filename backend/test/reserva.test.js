@@ -96,6 +96,12 @@ test("administrador gerencia usuários, salas e reservas; usuário comum fica li
     assert.equal(criada.dados.turno, "MANHA");
     const idReserva = criada.dados.id;
 
+    const disponiveis = await requisitar("/salas?disponivel=true&dia=2026-12-10&turno=manha");
+    assert.equal(disponiveis.status, 200);
+    assert.equal(disponiveis.dados.some((item) => item.id === sala.id), false);
+    assert.equal((await requisitar("/salas?disponivel=true&dia=2026-12-10&turno=tarde")).dados.some((item) => item.id === sala.id), true);
+    assert.equal((await requisitar("/salas?disponivel=true&dia=2026-02-30&turno=manha")).status, 400);
+
     assert.equal((await requisitar("/reservas", "POST", outro.id, dados)).status, 409);
     assert.equal((await requisitar("/reservas", "GET", dono.id)).dados.length, 1);
     assert.equal((await requisitar("/reservas", "GET", outro.id)).dados.length, 0);
