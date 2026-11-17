@@ -21,7 +21,7 @@ export async function criarSalas(req, res) {
 }
 
 export async function listarSalas(req, res) {
-  res.json(await getAllSalas());
+  res.json(await getAllSalas(req.query));
 }
 
 export async function buscarSalas(req, res) {
