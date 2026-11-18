@@ -1,4 +1,7 @@
 import { z } from "zod";
+import { hojeNoFusoDaAplicacao } from "../lib/dataReserva.js";
+
+const turnos = ["MANHA", "TARDE", "NOITE"];
 
 export const criarReservaSchema = z.object({
   dia: z
@@ -11,14 +14,17 @@ export const criarReservaSchema = z.object({
         data.toISOString().slice(0, 10) === dia
       );
     }, "Informe uma data válida")
+    .refine((dia) => dia >= hojeNoFusoDaAplicacao(), "A data da reserva não pode estar no passado")
     .transform((dia) => new Date(`${dia}T00:00:00.000Z`)),
 
-  turno: z.string().trim().min(1, "Informe o turno").transform(
-    (turno) => turno.toUpperCase()
-  ),
+  turno: z.string().trim().min(1, "Informe o turno")
+    .transform((turno) => turno.toUpperCase())
+    .refine((turno) => turnos.includes(turno), "O turno deve ser MANHA, TARDE ou NOITE"),
 
   idSala: z.coerce.number().int().positive(),
 }).strict();
+
+export const disponibilidadeSchema = criarReservaSchema.pick({ dia: true, turno: true });
 
 export const atualizarReservaSchema = criarReservaSchema
   .partial()

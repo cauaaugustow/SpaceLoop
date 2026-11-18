@@ -5,6 +5,7 @@ import {
 } from 'lucide-react'
 import Brand from '../components/auth/Brand.jsx'
 import { apiErrorMessage } from '../lib/apiError.js'
+import { businessToday } from '../lib/businessDate.js'
 import api from '../services/api.js'
 import './AccountPage.css'
 
@@ -27,11 +28,6 @@ const dateLabel = (value) => {
   const [year, month, day] = value.slice(0, 10).split('-')
   return `${day}/${month}/${year}`
 }
-const localToday = () => {
-  const now = new Date()
-  const offset = now.getTimezoneOffset() * 60_000
-  return new Date(now.getTime() - offset).toISOString().slice(0, 10)
-}
 const turnoLabel = (value) => turnos.find((item) => item.value === value?.toUpperCase())?.label || value
 
 function RoomCard({ room, onBook, busy }) {
@@ -53,7 +49,7 @@ function RoomCard({ room, onBook, busy }) {
 
 export default function AccountPage({ user, onLogout }) {
   const [section, setSection] = useState('inicio')
-  const [dia, setDia] = useState(localToday)
+  const [dia, setDia] = useState(businessToday)
   const [turno, setTurno] = useState('MANHA')
   const [search, setSearch] = useState('')
   const [rooms, setRooms] = useState([])
@@ -118,7 +114,7 @@ export default function AccountPage({ user, onLogout }) {
   const sortedReservations = useMemo(() => [...reservations].sort((a, b) =>
     a.dia.localeCompare(b.dia) || a.turno.localeCompare(b.turno),
   ), [reservations])
-  const upcomingReservations = sortedReservations.filter((item) => item.dia.slice(0, 10) >= localToday())
+  const upcomingReservations = sortedReservations.filter((item) => item.dia.slice(0, 10) >= businessToday())
   const firstName = (profile.nome || user.nome || 'você').trim().split(' ')[0]
 
   function navigate(key) {
@@ -203,7 +199,7 @@ export default function AccountPage({ user, onLogout }) {
 
           {showRooms && <section className="account-rooms-section" aria-labelledby="rooms-heading">
             <div className="account-section-title"><div><span className="account-eyebrow">ENCONTRE SEU LUGAR</span><h2 id="rooms-heading">{section === 'inicio' ? 'Salas disponíveis' : 'Explore nossas salas'}</h2><p>Escolha quando deseja usar o espaço e veja as salas livres.</p></div>{section === 'inicio' && <button type="button" className="account-inline-link" onClick={() => navigate('salas')}>Ver todas <ArrowRight size={16} /></button>}</div>
-            <div className="account-filters"><label><span>Data da reserva</span><div className="account-input-wrap"><CalendarDays size={18} /><input type="date" value={dia} min={localToday()} onChange={(event) => { setDia(event.target.value); setRooms([]); setRoomsLoading(true); setRoomsError(''); setSelectedRoom(null) }} /></div></label><label><span>Turno</span><div className="account-input-wrap"><Clock3 size={18} /><select value={turno} onChange={(event) => { setTurno(event.target.value); setRoomsLoading(true); setRoomsError(''); setSelectedRoom(null) }}>{turnos.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></div></label><label className="account-search"><span>Buscar sala</span><div className="account-input-wrap"><Search size={18} /><input type="search" placeholder="Nome ou descrição" value={search} onChange={(event) => setSearch(event.target.value)} /></div></label></div>
+            <div className="account-filters"><label><span>Data da reserva</span><div className="account-input-wrap"><CalendarDays size={18} /><input type="date" value={dia} min={businessToday()} onChange={(event) => { setDia(event.target.value); setRooms([]); setRoomsLoading(true); setRoomsError(''); setSelectedRoom(null) }} /></div></label><label><span>Turno</span><div className="account-input-wrap"><Clock3 size={18} /><select value={turno} onChange={(event) => { setTurno(event.target.value); setRoomsLoading(true); setRoomsError(''); setSelectedRoom(null) }}>{turnos.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></div></label><label className="account-search"><span>Buscar sala</span><div className="account-input-wrap"><Search size={18} /><input type="search" placeholder="Nome ou descrição" value={search} onChange={(event) => setSearch(event.target.value)} /></div></label></div>
             {selectedRoom && <div className="account-booking-confirm"><div><span className="account-eyebrow">CONFIRME SUA RESERVA</span><strong>{selectedRoom.nome}</strong><p>{dateLabel(dia)} · {turnoLabel(turno)} · {money.format(selectedRoom.preco)}</p></div><div><button type="button" className="account-secondary-button" onClick={() => setSelectedRoom(null)} disabled={busy}>Voltar</button><button type="button" className="account-primary-button" onClick={confirmBooking} disabled={busy}>{busy ? 'Reservando...' : 'Confirmar reserva'}</button></div></div>}
             {roomsError && <div className="account-empty error" role="alert"><strong>Não foi possível carregar as salas.</strong><p>{roomsError}</p><button type="button" className="account-secondary-button" onClick={() => { setRoomsLoading(true); setRoomsError(''); setRoomsReloadKey((value) => value + 1) }}>Tentar novamente</button></div>}
             {!dia && <div className="account-empty">Selecione uma data para ver as salas disponíveis.</div>}

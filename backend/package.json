@@ -7,7 +7,10 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
-    "test": "node --test"
+    "test": "node --test",
+    "db:generate": "prisma generate",
+    "db:migrate": "node scripts/prepararBanco.js && prisma migrate deploy",
+    "admin:promote": "node scripts/promoverAdmin.js"
   },
   "repository": {
     "type": "git",

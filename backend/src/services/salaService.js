@@ -7,6 +7,7 @@ import {
  } from "../repositories/salaRepository.js";
 import { ErroDeDominio } from "../error/erroDeDominio.js";
 import { criarSalaSchema, updateSalaSchema } from "../schema/salaSchema.js";
+import { disponibilidadeSchema } from "../schema/reservaSchema.js";
 
 
 export async function criarSala(dados) {
@@ -27,12 +28,7 @@ export async function getAllSalas(filters = {}) {
         return listarSalasRepository();
     }
 
-    if(!dia || !turno) throw new ErroDeDominio("Para filtrar por disponibilidade, informe dia (AAAA-MM-DD) e turno.", 400);
-
-    const inicio = new Date(`${dia}T00:00:00.000Z`);
-    if(!/^\d{4}-\d{2}-\d{2}$/.test(dia) || Number.isNaN(inicio.getTime()) || inicio.toISOString().slice(0, 10) !== dia) {
-        throw new ErroDeDominio("A data informada no parâmetro'dia' é invalido", 400);
-    }
+    const { dia: inicio, turno: turnoNormalizado } = disponibilidadeSchema.parse({ dia, turno });
 
     const fim = new Date(inicio);
     fim.setUTCDate(fim.getUTCDate() + 1);
@@ -40,7 +36,7 @@ export async function getAllSalas(filters = {}) {
     return listarSalasRepository({
         inicio,
         fim,
-        turno: String(turno).trim().toUpperCase(),
+        turno: turnoNormalizado,
     });
 }
 

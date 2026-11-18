@@ -9,6 +9,7 @@ import { buscarSalaPorId } from "./salaService.js";
 import { getUsersById } from "./usuarioService.js";
 import { ErroDeDominio } from "../error/erroDeDominio.js";
 import { criarReservaSchema, atualizarReservaSchema } from "../schema/reservaSchema.js";
+import { hojeNoFusoDaAplicacao } from "../lib/dataReserva.js";
 
 export async function criarReserva(dados, idUsuario) {
   const { idSala, dia, turno } = criarReservaSchema.parse(dados);
@@ -41,9 +42,13 @@ export async function buscarReservaPorId(id, idUsuario, eadmin) {
 }
 
 export async function atualizarReserva(id, dados, idUsuario, eadmin) {
-  await buscarReservaPorId(id, idUsuario, eadmin);
+  const reserva = await buscarReservaPorId(id, idUsuario, eadmin);
 
   const dadosValidados = atualizarReservaSchema.parse(dados);
+  const diaFinal = dadosValidados.dia ?? reserva.dia;
+  if (diaFinal.toISOString().slice(0, 10) < hojeNoFusoDaAplicacao()) {
+    throw new ErroDeDominio("A data da reserva não pode estar no passado", 400);
+  }
   if (dadosValidados.idSala) {
     await buscarSalaPorId(dadosValidados.idSala);
   }

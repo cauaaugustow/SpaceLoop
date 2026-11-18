@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import api from '../services/api.js'
 import { apiErrorMessage } from '../lib/apiError.js'
+import { businessToday } from '../lib/businessDate.js'
 import './AdminPage.css'
 
 const emptyForms = {
@@ -144,8 +145,12 @@ export default function AdminPage({ user, onLogout }) {
     return <>
       {editingId === null && field('idUsuario', 'Usuário', { choices: data.usuarios.map((item) => ({ value: item.id, label: `${item.nome} (${item.email})` })) })}
       {field('idSala', 'Sala', { choices: data.salas.map((item) => ({ value: item.id, label: item.nome })) })}
-      {field('dia', 'Dia', { type: 'date' })}
-      {field('turno', 'Turno')}
+      {field('dia', 'Dia', { type: 'date', min: businessToday() })}
+      {field('turno', 'Turno', { choices: [
+        { value: 'MANHA', label: 'Manhã' },
+        { value: 'TARDE', label: 'Tarde' },
+        { value: 'NOITE', label: 'Noite' },
+      ] })}
     </>
   }
 
