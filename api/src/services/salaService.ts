@@ -4,8 +4,10 @@ import {
   listarSalas as listarSalasRepository,
   atualizarSalas as atualizarSalasRepository,
   deletarSalas as deletarSalasRepository,
+  contarReservasDaSala,
   type SalaSelecionada,
 } from "../repositories/salaRepository.js";
+import { buscarBlocoPorId } from "../repositories/blocoRepository.js";
 import type { Prisma } from "../generated/prisma/client.js";
 import type { RespostaDeRemocao } from "./respostaDeRemocao.js";
 import { ErroDeDominio } from "../error/erroDeDominio.js";
@@ -19,13 +21,21 @@ import { disponibilidadeSchema, type DadosDeDisponibilidade } from "../schema/re
 
 export type FiltrosDeConsultaDeSalas = { disponivel?: unknown; dia?: unknown; turno?: unknown };
 
+async function exigirBlocoExistente(idBloco: number): Promise<void> {
+  if (!(await buscarBlocoPorId(idBloco))) {
+    throw new ErroDeDominio("Bloco não encontrado", 404);
+  }
+}
+
 export async function criarSala(dados: unknown): Promise<SalaSelecionada> {
-  const { nome, capacidade, descricao, precoLocacao }: DadosDeNovaSala = criarSalaSchema.parse(dados);
+  const { nome, capacidade, descricao, precoLocacao, idBloco }: DadosDeNovaSala = criarSalaSchema.parse(dados);
+  await exigirBlocoExistente(idBloco);
   return criarSalaRepository({
     nome,
     capacidade,
     descricao: descricao ?? null,
     preco: precoLocacao,
+    idBloco,
   });
 }
 
@@ -53,8 +63,11 @@ export async function buscarSalaPorId(id: number): Promise<SalaSelecionada> {
 
 export async function atualizarSala(id: number, dados: unknown): Promise<SalaSelecionada> {
   const { precoLocacao, ...demaisDados }: DadosDeAtualizacaoDeSala = updateSalaSchema.parse(dados);
-  const dadosAtualizados: Prisma.SalaUpdateInput = { ...demaisDados };
+  const dadosAtualizados: Prisma.SalaUncheckedUpdateInput = { ...demaisDados };
   await buscarSalaPorId(id);
+  if (demaisDados.idBloco !== undefined) {
+    await exigirBlocoExistente(demaisDados.idBloco);
+  }
   if (precoLocacao !== undefined) {
     dadosAtualizados.preco = precoLocacao;
   }
@@ -64,6 +77,10 @@ export async function atualizarSala(id: number, dados: unknown): Promise<SalaSel
 
 export async function deletarSala(id: number): Promise<RespostaDeRemocao> {
   await buscarSalaPorId(id);
+
+  if ((await contarReservasDaSala(id)) > 0) {
+    throw new ErroDeDominio("A sala possui reservas e não pode ser removida", 409);
+  }
 
   await deletarSalasRepository(id);
 

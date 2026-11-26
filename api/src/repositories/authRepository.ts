@@ -5,7 +5,6 @@ export const selectUserAuth = {
   id: true,
   nome: true,
   email: true,
-  eadmin: true,
   senhaHash: true,
   criadoEm: true,
 } satisfies Prisma.UsuarioSelect;

@@ -23,7 +23,6 @@ export async function authUsuario(email: string, senha: string): Promise<Usuario
     id: usuario.id,
     nome: usuario.nome,
     email: usuario.email,
-    eadmin: usuario.eadmin,
     criadoEm: usuario.criadoEm,
   };
 }

@@ -12,6 +12,8 @@ export const criarSalaSchema = z.object({
 
   descricao: z.string().optional().nullable(),
 
+  idBloco: z.coerce.number().int().positive(),
+
   precoLocacao: z.coerce
     .number()
     .min(0, "O preço de locação deve ser um valor numérico válido maior ou igual a zero."),

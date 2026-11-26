@@ -34,9 +34,9 @@ export async function authValidate(req: Request, res: Response, next: NextFuncti
   }
 
   try {
-    const usuario: { eadmin: boolean } | null = await prisma.usuario.findUnique({
+    const usuario: { id: number } | null = await prisma.usuario.findUnique({
       where: { id },
-      select: { eadmin: true },
+      select: { id: true },
     });
 
     if (!usuario) {
@@ -44,7 +44,7 @@ export async function authValidate(req: Request, res: Response, next: NextFuncti
       return;
     }
 
-    req.user = { ...payload, eadmin: usuario.eadmin };
+    req.user = payload;
     next();
   } catch (erro: unknown) {
     next(erro);

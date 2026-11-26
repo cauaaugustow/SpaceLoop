@@ -1,10 +1,10 @@
 import "dotenv/config";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../generated/prisma/client.js";
 import { lerVariavelObrigatoria } from "./env.js";
 
-const adapter: PrismaBetterSqlite3 = new PrismaBetterSqlite3({
-  url: lerVariavelObrigatoria("DATABASE_URL"),
+const adapter: PrismaPg = new PrismaPg({
+  connectionString: lerVariavelObrigatoria("DATABASE_URL"),
 });
 
 const prisma: PrismaClient = new PrismaClient({ adapter });

@@ -1,35 +1,24 @@
+import "dotenv/config";
 import assert from "node:assert/strict";
-import { randomUUID } from "node:crypto";
-import { readFileSync, rmSync } from "node:fs";
 import { once } from "node:events";
-import { execFile } from "node:child_process";
-import test from "node:test";
-import { promisify } from "node:util";
-import Database from "better-sqlite3";
-import bcrypt from "bcryptjs";
 import type { Server } from "node:http";
 import type { AddressInfo } from "node:net";
+import test from "node:test";
+import bcrypt from "bcryptjs";
 import express, { type Express, type NextFunction, type Request, type Response } from "express";
 import jwt from "jsonwebtoken";
-
-import type { PrismaClient, Reserva, Sala, Usuario } from "../src/generated/prisma/client.js";
+import { criarBancoTemporario, type BancoTemporario } from "./bancoTemporario.js";
+import type { Bloco, Cliente, PrismaClient, Reserva, Sala, Usuario } from "../src/generated/prisma/client.js";
 
 type Resposta = { status: number; dados: any };
 
-const execFileAsync: typeof execFile.__promisify__ = promisify(execFile);
-
-test("administrador gerencia usuários, salas e reservas; usuário comum fica limitado aos próprios dados", async () => {
+test("usuário logado gerencia salas e reservas com as regras de conflito e data", async () => {
   const dia: string = new Date(Date.now() + 30 * 86_400_000).toISOString().slice(0, 10);
   const diaSeguinte: string = new Date(Date.now() + 31 * 86_400_000).toISOString().slice(0, 10);
-  const arquivo: string = `reserva-test-${randomUUID()}.db`;
-  process.env.DATABASE_URL = `file:./${arquivo}`;
+  const banco: BancoTemporario = await criarBancoTemporario();
+  process.env.DATABASE_URL = banco.url;
   const segredoDeTeste: string = "segredo-apenas-para-teste";
   process.env.JWT_SECRET = segredoDeTeste;
-
-  const banco: Database.Database = new Database(arquivo);
-  banco.exec(readFileSync("prisma/migrations/20260917175032_criar_tabelas_iniciais/migration.sql", "utf8"));
-  banco.exec(readFileSync("prisma/migrations/20261110000000_reserva_sala_dia_turno_unicos/migration.sql", "utf8"));
-  banco.close();
 
   let servidor: Server | undefined;
   let prisma: PrismaClient | undefined;
@@ -41,17 +30,18 @@ test("administrador gerencia usuários, salas e reservas; usuário comum fica li
     const { salaRoutes } = await import("../src/routes/salaRoute.js");
     const { authRoutes } = await import("../src/routes/authRoute.js");
 
-    const dono: Usuario = await prisma.usuario.create({
-      data: { nome: "Dono", email: "dono@teste.local", cpf: "12345678901", senhaHash: "teste" },
+    const usuario: Usuario = await prisma.usuario.create({
+      data: { nome: "Professor", email: "professor@teste.local", senhaHash: await bcrypt.hash("senha-forte-123", 4) },
     });
-    const outro: Usuario = await prisma.usuario.create({
-      data: { nome: "Outro", email: "outro@teste.local", cpf: "10987654321", senhaHash: "teste" },
+    const bloco: Bloco = await prisma.bloco.create({ data: { nome: "Bloco A" } });
+    const cliente: Cliente = await prisma.cliente.create({
+      data: { nome: "Cliente Um", cpf: "12345678901", email: "um@teste.local" },
     });
-    const admin: Usuario = await prisma.usuario.create({
-      data: { nome: "Admin", email: "admin@teste.local", cpf: "98765432109", senhaHash: await bcrypt.hash("senha-forte-123", 4), eadmin: true },
+    const outroCliente: Cliente = await prisma.cliente.create({
+      data: { nome: "Cliente Dois", cpf: "10987654321", email: "dois@teste.local" },
     });
     const sala: Sala = await prisma.sala.create({
-      data: { nome: "Sala de teste", capacidade: 2, preco: 0 },
+      data: { nome: "Sala de teste", capacidade: 2, preco: 0, idBloco: bloco.id },
     });
 
     const app: Express = express();
@@ -84,37 +74,43 @@ test("administrador gerencia usuários, salas e reservas; usuário comum fica li
     };
 
     assert.equal((await requisitar("/reservas")).status, 401);
-    const loginAdmin: Resposta = await requisitar("/login", "POST", null, { email: admin.email, senha: "senha-forte-123" });
-    assert.equal(loginAdmin.status, 200);
-    assert.equal(loginAdmin.dados.usuario.eadmin, true);
-    assert.equal((await requisitar("/usuarios", "GET", dono.id)).status, 403);
-    assert.equal((await requisitar("/usuarios", "GET", admin.id)).dados.length, 3);
-    assert.equal((await requisitar(`/usuarios/${outro.id}`, "GET", dono.id)).status, 403);
-    assert.equal((await requisitar(`/usuarios/${dono.id}`, "GET", dono.id)).status, 200);
-    assert.equal((await requisitar(`/usuarios/${outro.id}`, "PATCH", dono.id, { nome: "Alterado" })).status, 403);
-    assert.equal((await requisitar(`/usuarios/${outro.id}`, "PATCH", admin.id, { nome: "Alterado" })).status, 200);
-    assert.equal((await requisitar("/usuario", "POST", null, { nome: "Duplicado", email: dono.email, cpf: "22233344455", senha: "senha-forte-123" })).status, 409);
-    assert.equal((await requisitar("/usuario", "POST", null, { nome: "Duplicado", email: "novo@teste.local", cpf: dono.cpf, senha: "senha-forte-123" })).status, 409);
-    assert.equal((await requisitar("/salas", "POST", dono.id, { nome: "Nova sala", capacidade: 4, precoLocacao: 50 })).status, 403);
-    assert.equal((await requisitar("/salas", "POST", admin.id, { nome: "Nova sala", capacidade: 0, precoLocacao: 50 })).status, 400);
+
+    const cadastro: Resposta = await requisitar("/usuario", "POST", null, { nome: "Novo", email: "NOVO@teste.local", senha: "senha-forte-123" });
+    assert.equal(cadastro.status, 201);
+    assert.equal(cadastro.dados.email, "novo@teste.local");
+    assert.equal("senhaHash" in cadastro.dados, false);
+    assert.equal("senha" in cadastro.dados, false);
+    assert.equal((await requisitar("/usuario", "POST", null, { nome: "Duplicado", email: usuario.email, senha: "senha-forte-123" })).status, 409);
+
+    const login: Resposta = await requisitar("/login", "POST", null, { email: usuario.email, senha: "senha-forte-123" });
+    assert.equal(login.status, 200);
+    assert.equal("senhaHash" in login.dados.usuario, false);
+    assert.equal((await requisitar("/login", "POST", null, { email: usuario.email, senha: "senha-errada-123" })).status, 401);
+
+    const novaSala: { nome: string; capacidade: number; precoLocacao: number; idBloco: number } = { nome: "Nova sala", capacidade: 4, precoLocacao: 50, idBloco: bloco.id };
+    assert.equal((await requisitar("/salas", "POST", null, novaSala)).status, 401);
+    assert.equal((await requisitar("/salas", "POST", usuario.id, { ...novaSala, capacidade: 0 })).status, 400);
+    assert.equal((await requisitar("/salas", "POST", usuario.id, { ...novaSala, idBloco: 999999 })).status, 404);
     assert.equal((await requisitar("/salas/999999", "GET")).status, 404);
-    const salaAdmin: Resposta = await requisitar("/salas", "POST", admin.id, { nome: "Nova sala", capacidade: 4, precoLocacao: 50 });
-    assert.equal(salaAdmin.status, 201);
-    const salaEditada: Resposta = await requisitar(`/salas/${salaAdmin.dados.id}`, "PATCH", admin.id, { precoLocacao: 75 });
+    const salaCriada: Resposta = await requisitar("/salas", "POST", usuario.id, novaSala);
+    assert.equal(salaCriada.status, 201);
+    assert.equal(salaCriada.dados.idBloco, bloco.id);
+    const salaEditada: Resposta = await requisitar(`/salas/${salaCriada.dados.id}`, "PATCH", usuario.id, { precoLocacao: 75 });
     assert.equal(salaEditada.status, 200);
     assert.equal(salaEditada.dados.preco, 75);
-    assert.equal((await requisitar(`/salas/${salaAdmin.dados.id}`, "PATCH", admin.id, { capacidade: -1 })).status, 400);
-    assert.equal((await requisitar(`/salas/${salaAdmin.dados.id}`, "DELETE", admin.id)).status, 200);
+    assert.equal((await requisitar(`/salas/${salaCriada.dados.id}`, "PATCH", usuario.id, { idBloco: 999999 })).status, 404);
+    assert.equal((await requisitar(`/salas/${salaCriada.dados.id}`, "DELETE", usuario.id)).status, 200);
 
-    const dados: { idSala: number; dia: string; turno: string } = { idSala: sala.id, dia, turno: "manha" };
-    assert.equal((await requisitar("/reservas", "POST", dono.id, { ...dados, idUsuario: outro.id })).status, 400);
-    assert.equal((await requisitar("/reservas", "POST", dono.id, { ...dados, dia: "2020-01-01" })).status, 400);
-    assert.equal((await requisitar("/reservas", "POST", dono.id, { ...dados, turno: "madrugada" })).status, 400);
+    const dados: { idSala: number; idCliente: number; dia: string; turno: string } = { idSala: sala.id, idCliente: cliente.id, dia, turno: "manha" };
+    assert.equal((await requisitar("/reservas", "POST", usuario.id, { ...dados, dia: "2020-01-01" })).status, 400);
+    assert.equal((await requisitar("/reservas", "POST", usuario.id, { ...dados, turno: "madrugada" })).status, 400);
+    assert.equal((await requisitar("/reservas", "POST", usuario.id, { ...dados, idCliente: 999999 })).status, 404);
 
-    const criada: Resposta = await requisitar("/reservas", "POST", dono.id, dados);
+    const criada: Resposta = await requisitar("/reservas", "POST", usuario.id, dados);
     assert.equal(criada.status, 201);
-    assert.equal(criada.dados.idUsuario, dono.id);
+    assert.equal(criada.dados.idCliente, cliente.id);
     assert.equal(criada.dados.turno, "MANHA");
+    assert.equal(criada.dados.dia.slice(0, 10), dia);
     const idReserva: number = criada.dados.id;
 
     const disponiveis: Resposta = await requisitar(`/salas?disponivel=true&dia=${dia}&turno=manha`);
@@ -123,55 +119,32 @@ test("administrador gerencia usuários, salas e reservas; usuário comum fica li
     assert.equal((await requisitar(`/salas?disponivel=true&dia=${dia}&turno=tarde`)).dados.some((item: Sala) => item.id === sala.id), true);
     assert.equal((await requisitar("/salas?disponivel=true&dia=2026-02-30&turno=manha")).status, 400);
     assert.equal((await requisitar("/salas?disponivel=true&dia=2020-01-01&turno=manha")).status, 400);
-    assert.equal((await requisitar(`/salas?disponivel=true&dia=${dia}&turno=madrugada`)).status, 400);
 
-    assert.equal((await requisitar("/reservas", "POST", outro.id, dados)).status, 409);
-    assert.equal((await requisitar("/reservas", "GET", dono.id)).dados.length, 1);
-    assert.equal((await requisitar("/reservas", "GET", outro.id)).dados.length, 0);
-    assert.equal((await requisitar("/reservas", "GET", admin.id)).dados.length, 1);
-    assert.equal((await requisitar(`/reservas/${idReserva}`, "GET", dono.id)).dados.id, idReserva);
-    assert.equal((await requisitar(`/reservas/${idReserva}`, "GET", outro.id)).status, 403);
-    assert.equal((await requisitar(`/reservas/${idReserva}`, "GET", admin.id)).status, 200);
-    assert.equal((await requisitar(`/reservas/${idReserva}`, "PATCH", outro.id, { turno: "tarde" })).status, 403);
-    assert.equal((await requisitar(`/reservas/${idReserva}`, "DELETE", outro.id)).status, 403);
-    assert.equal((await requisitar(`/reservas/${idReserva}`, "PATCH", dono.id, { dia: "2020-01-01" })).status, 400);
-    assert.equal((await requisitar(`/reservas/${idReserva}`, "PATCH", dono.id, { turno: "madrugada" })).status, 400);
+    assert.equal((await requisitar("/reservas", "POST", usuario.id, { ...dados, idCliente: outroCliente.id })).status, 409);
+    assert.equal((await requisitar("/reservas", "GET", usuario.id)).dados.length, 1);
+    assert.equal((await requisitar(`/reservas/${idReserva}`, "GET", usuario.id)).dados.id, idReserva);
+    assert.equal((await requisitar(`/salas/${sala.id}`, "DELETE", usuario.id)).status, 409);
 
-    const reservaConflitante: Resposta = await requisitar("/reservas", "POST", outro.id, { ...dados, turno: "tarde" });
-    assert.equal(reservaConflitante.status, 201);
-    assert.equal((await requisitar(`/reservas/${idReserva}`, "PATCH", dono.id, { turno: "tarde" })).status, 409);
-    assert.equal((await requisitar(`/reservas/${reservaConflitante.dados.id}`, "DELETE", outro.id)).status, 200);
-
-    const reservaAdmin: Resposta = await requisitar("/reservas", "POST", admin.id, { ...dados, dia: diaSeguinte, idUsuario: outro.id });
-    assert.equal(reservaAdmin.status, 201);
-    assert.equal(reservaAdmin.dados.idUsuario, outro.id);
-    assert.equal((await requisitar(`/reservas/${reservaAdmin.dados.id}`, "PATCH", admin.id, { turno: "noite" })).status, 200);
-    assert.equal((await requisitar(`/reservas/${reservaAdmin.dados.id}`, "DELETE", admin.id)).status, 200);
-
-    const atualizada: Resposta = await requisitar(`/reservas/${idReserva}`, "PATCH", dono.id, { turno: "tarde" });
+    const reservaDaTarde: Resposta = await requisitar("/reservas", "POST", usuario.id, { ...dados, turno: "tarde" });
+    assert.equal(reservaDaTarde.status, 201);
+    assert.equal((await requisitar(`/reservas/${idReserva}`, "PATCH", usuario.id, { turno: "tarde" })).status, 409);
+    assert.equal((await requisitar(`/reservas/${idReserva}`, "PATCH", usuario.id, { idCliente: 999999 })).status, 404);
+    const atualizada: Resposta = await requisitar(`/reservas/${idReserva}`, "PATCH", usuario.id, { dia: diaSeguinte, idCliente: outroCliente.id });
     assert.equal(atualizada.status, 200);
-    assert.equal(atualizada.dados.turno, "TARDE");
+    assert.equal(atualizada.dados.idCliente, outroCliente.id);
 
-    assert.equal((await requisitar(`/reservas/${idReserva}`, "DELETE", dono.id)).status, 200);
-    assert.equal((await requisitar(`/reservas/${idReserva}`, "GET", dono.id)).status, 404);
+    assert.equal((await requisitar(`/reservas/${idReserva}`, "DELETE", usuario.id)).status, 200);
+    assert.equal((await requisitar(`/reservas/${idReserva}`, "GET", usuario.id)).status, 404);
 
     const reservaAntiga: Reserva = await prisma.reserva.create({
-      data: { idSala: sala.id, idUsuario: dono.id, dia: new Date("2020-01-01T00:00:00.000Z"), turno: "MANHA" },
+      data: { idSala: sala.id, idCliente: cliente.id, dia: new Date("2020-01-01T00:00:00.000Z"), turno: "MANHA" },
     });
-    assert.equal((await requisitar(`/reservas/${reservaAntiga.id}`, "PATCH", dono.id, { turno: "TARDE" })).status, 400);
-    assert.equal((await requisitar(`/reservas/${reservaAntiga.id}`, "PATCH", dono.id, { dia: diaSeguinte })).status, 200);
-
-    const futuroAdmin: Usuario = await prisma.usuario.create({
-      data: { nome: "Futuro Admin", email: "futuro@teste.local", cpf: "55566677788", senhaHash: "teste" },
-    });
-    await execFileAsync(process.execPath, ["--import", "tsx", "scripts/promoverAdmin.ts", futuroAdmin.email.toUpperCase()], {
-      env: { ...process.env, DATABASE_URL: `file:./${arquivo}` },
-    });
-    assert.equal((await prisma.usuario.findUniqueOrThrow({ where: { id: futuroAdmin.id } })).eadmin, true);
+    assert.equal((await requisitar(`/reservas/${reservaAntiga.id}`, "PATCH", usuario.id, { turno: "TARDE" })).status, 400);
+    assert.equal((await requisitar(`/reservas/${reservaAntiga.id}`, "PATCH", usuario.id, { dia: diaSeguinte })).status, 200);
   } finally {
     const servidorAberto: Server | undefined = servidor;
     if (servidorAberto) await new Promise<void>((resolve) => servidorAberto.close(() => resolve()));
     if (prisma) await prisma.$disconnect();
-    rmSync(arquivo, { force: true });
+    await banco.apagar();
   }
 });

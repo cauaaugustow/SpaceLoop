@@ -22,6 +22,8 @@ export const criarReservaSchema = z.object({
     .refine((turno) => turnos.includes(turno), "O turno deve ser MANHA, TARDE ou NOITE"),
 
   idSala: z.coerce.number().int().positive(),
+
+  idCliente: z.coerce.number().int().positive(),
 }).strict();
 
 export const disponibilidadeSchema = criarReservaSchema.pick({ dia: true, turno: true });

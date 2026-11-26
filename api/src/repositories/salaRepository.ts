@@ -7,6 +7,7 @@ export const selectSalas = {
   capacidade: true,
   descricao: true,
   preco: true,
+  idBloco: true,
   criadoEm: true,
   atualizadoEm: true,
 } satisfies Prisma.SalaSelect;
@@ -15,7 +16,7 @@ export type SalaSelecionada = Prisma.SalaGetPayload<{ select: typeof selectSalas
 
 export type FiltroDisponibilidade = { inicio?: Date; fim?: Date; turno?: string };
 
-export async function criarSala(dados: Prisma.SalaCreateInput): Promise<SalaSelecionada> {
+export async function criarSala(dados: Prisma.SalaUncheckedCreateInput): Promise<SalaSelecionada> {
   return prisma.sala.create({ data: dados, select: selectSalas });
 }
 
@@ -31,10 +32,14 @@ export async function listarSalas({ inicio, fim, turno }: FiltroDisponibilidade 
   return prisma.sala.findMany({ where, select: selectSalas });
 }
 
-export async function atualizarSalas(id: number, dados: Prisma.SalaUpdateInput): Promise<SalaSelecionada> {
+export async function atualizarSalas(id: number, dados: Prisma.SalaUncheckedUpdateInput): Promise<SalaSelecionada> {
   return prisma.sala.update({ where: { id }, data: dados, select: selectSalas });
 }
 
 export async function deletarSalas(id: number): Promise<SalaSelecionada> {
   return prisma.sala.delete({ where: { id }, select: selectSalas });
+}
+
+export async function contarReservasDaSala(idSala: number): Promise<number> {
+  return prisma.reserva.count({ where: { idSala } });
 }

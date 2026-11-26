@@ -6,8 +6,8 @@ import {
   deletarReserva as deletarReservaRepository,
   type ReservaSelecionada,
 } from "../repositories/reservaRepository.js";
+import { buscarClientePorId } from "../repositories/clienteRepository.js";
 import { buscarSalaPorId } from "./salaService.js";
-import { getUsersById } from "./usuarioService.js";
 import type { RespostaDeRemocao } from "./respostaDeRemocao.js";
 import { ErroDeDominio } from "../error/erroDeDominio.js";
 import { codigoDoErroPrisma } from "../error/codigoDoErroPrisma.js";
@@ -19,14 +19,20 @@ import {
 } from "../schema/reservaSchema.js";
 import { hojeNoFusoDaAplicacao } from "../lib/dataReserva.js";
 
-export async function criarReserva(dados: unknown, idUsuario: number): Promise<ReservaSelecionada> {
-  const { idSala, dia, turno }: DadosDeNovaReserva = criarReservaSchema.parse(dados);
+async function exigirClienteExistente(idCliente: number): Promise<void> {
+  if (!(await buscarClientePorId(idCliente))) {
+    throw new ErroDeDominio("Cliente não encontrado", 404);
+  }
+}
 
-  await getUsersById(idUsuario);
+export async function criarReserva(dados: unknown): Promise<ReservaSelecionada> {
+  const { idSala, idCliente, dia, turno }: DadosDeNovaReserva = criarReservaSchema.parse(dados);
+
+  await exigirClienteExistente(idCliente);
   await buscarSalaPorId(idSala);
 
   try {
-    return await criarReservaRepository({ idUsuario, idSala, dia, turno });
+    return await criarReservaRepository({ idCliente, idSala, dia, turno });
   } catch (erro: unknown) {
     if (codigoDoErroPrisma(erro) === "P2002") {
       throw new ErroDeDominio("Esta sala já possui uma reserva neste dia e turno", 409);
@@ -35,22 +41,18 @@ export async function criarReserva(dados: unknown, idUsuario: number): Promise<R
   }
 }
 
-export async function getAllReservas(idUsuario: number, eadmin: boolean): Promise<ReservaSelecionada[]> {
-  return listaReservasRepository(idUsuario, eadmin);
+export async function getAllReservas(): Promise<ReservaSelecionada[]> {
+  return listaReservasRepository();
 }
 
-export async function buscarReservaPorId(id: number, idUsuario: number, eadmin: boolean): Promise<ReservaSelecionada> {
+export async function buscarReservaPorId(id: number): Promise<ReservaSelecionada> {
   const reserva: ReservaSelecionada | null = await buscarReservaPorIdRepository(id);
   if (!reserva) throw new ErroDeDominio("Reserva não encontrada", 404);
-
-  if (!eadmin && reserva.idUsuario !== idUsuario) {
-    throw new ErroDeDominio("Acesso negado", 403);
-  }
   return reserva;
 }
 
-export async function atualizarReserva(id: number, dados: unknown, idUsuario: number, eadmin: boolean): Promise<ReservaSelecionada> {
-  const reserva: ReservaSelecionada = await buscarReservaPorId(id, idUsuario, eadmin);
+export async function atualizarReserva(id: number, dados: unknown): Promise<ReservaSelecionada> {
+  const reserva: ReservaSelecionada = await buscarReservaPorId(id);
 
   const dadosValidados: DadosDeAtualizacaoDeReserva = atualizarReservaSchema.parse(dados);
   const diaFinal: Date = dadosValidados.dia ?? reserva.dia;
@@ -59,6 +61,9 @@ export async function atualizarReserva(id: number, dados: unknown, idUsuario: nu
   }
   if (dadosValidados.idSala) {
     await buscarSalaPorId(dadosValidados.idSala);
+  }
+  if (dadosValidados.idCliente) {
+    await exigirClienteExistente(dadosValidados.idCliente);
   }
 
   try {
@@ -74,8 +79,8 @@ export async function atualizarReserva(id: number, dados: unknown, idUsuario: nu
   }
 }
 
-export async function deletarReserva(id: number, idUsuario: number, eadmin: boolean): Promise<RespostaDeRemocao> {
-  await buscarReservaPorId(id, idUsuario, eadmin);
+export async function deletarReserva(id: number): Promise<RespostaDeRemocao> {
+  await buscarReservaPorId(id);
 
   try {
     await deletarReservaRepository(id);

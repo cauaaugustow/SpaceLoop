@@ -1,57 +1,72 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
 }
 
 model Usuario {
-  id        Int      @id @default(autoincrement())
-  nome      String
-  email     String   @unique
-  senhaHash String
-  telefone  String?
-  cpf       String   @unique
-  criadoEm  DateTime @default(now())
+  id           Int      @id @default(autoincrement())
+  nome         String
+  email        String   @unique
+  senhaHash    String
+  criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
-  eadmin    Boolean  @default(false) @map("e_admin")
-  reservas Reserva[] 
-
 
   @@map("usuarios")
 }
 
-
-model Sala{
-  id        Int      @id @default(autoincrement())
-  nome      String
-  capacidade Int
-  descricao String?
-  preco     Float @map("preco_locacao")
-  criadoEm  DateTime @default(now())
+model Bloco {
+  id           Int      @id @default(autoincrement())
+  nome         String   @unique
+  descricao    String?
+  criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
-  reservas Reserva[]
+  salas        Sala[]
 
+  @@map("blocos")
+}
+
+model Sala {
+  id           Int       @id @default(autoincrement())
+  nome         String
+  capacidade   Int
+  descricao    String?
+  preco        Float     @map("preco_locacao")
+  criadoEm     DateTime  @default(now())
+  atualizadoEm DateTime  @updatedAt
+  idBloco      Int       @map("id_bloco")
+  bloco        Bloco     @relation(fields: [idBloco], references: [id], onDelete: Restrict)
+  reservas     Reserva[]
 
   @@map("salas")
 }
 
+model Cliente {
+  id           Int       @id @default(autoincrement())
+  nome         String
+  cpf          String    @unique
+  email        String    @unique
+  telefone     String?
+  criadoEm     DateTime  @default(now())
+  atualizadoEm DateTime  @updatedAt
+  reservas     Reserva[]
 
-model Reserva{
-  id        Int      @id @default(autoincrement())
-  dia       DateTime
-  turno     String
-  criadoEm  DateTime @default(now())
+  @@map("clientes")
+}
+
+model Reserva {
+  id           Int      @id @default(autoincrement())
+  dia          DateTime @db.Date
+  turno        String
+  criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
-  idUsuario Int @map("id_usuario")
-  idSala Int @map("id_sala")
-  usuario Usuario @relation(fields: [idUsuario], references: [id], onDelete: Cascade)
-  sala Sala @relation(fields: [idSala], references: [id], onDelete: Cascade)
+  idSala       Int      @map("id_sala")
+  idCliente    Int      @map("id_cliente")
+  sala         Sala     @relation(fields: [idSala], references: [id], onDelete: Restrict)
+  cliente      Cliente  @relation(fields: [idCliente], references: [id], onDelete: Restrict)
 
   @@unique([idSala, dia, turno])
   @@map("reservas")

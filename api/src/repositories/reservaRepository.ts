@@ -7,7 +7,7 @@ export const selectReservas = {
   turno: true,
   criadoEm: true,
   atualizadoEm: true,
-  idUsuario: true,
+  idCliente: true,
   idSala: true,
 } satisfies Prisma.ReservaSelect;
 
@@ -21,8 +21,8 @@ export async function buscarReservaPorId(id: number): Promise<ReservaSelecionada
   return prisma.reserva.findUnique({ where: { id }, select: selectReservas });
 }
 
-export async function listaReservas(idUsuario: number, eadmin: boolean): Promise<ReservaSelecionada[]> {
-  return prisma.reserva.findMany({ where: eadmin ? {} : { idUsuario }, select: selectReservas });
+export async function listaReservas(): Promise<ReservaSelecionada[]> {
+  return prisma.reserva.findMany({ select: selectReservas });
 }
 
 export async function atualizarReserva(id: number, dados: Prisma.ReservaUncheckedUpdateInput): Promise<ReservaSelecionada> {
