@@ -95,13 +95,29 @@ export function PainelDeCadastro<RegistroDaTela extends Registro, Formulario>({
                 <button type="button" aria-label={`Editar ${descreverRegistro(registro)}`} onClick={() => tela.abrirEdicao(registro)}>
                   Editar
                 </button>
-                <button type="button" aria-label={`Excluir ${descreverRegistro(registro)}`} onClick={() => tela.removerComConfirmacao(registro, descreverRegistro(registro))}>
+                <button type="button" aria-label={`Excluir ${descreverRegistro(registro)}`} onClick={() => tela.pedirConfirmacaoDeRemocao(registro)}>
                   Excluir
                 </button>
               </div>
             </article>
           ))}
         </div>
+      )}
+
+      {tela.registroAguardandoRemocao && (
+        <Modal titulo={`Excluir ${nomeNoSingular}`} aoFechar={tela.cancelarRemocao}>
+          <p className="modal-confirmation">
+            Tem certeza que quer excluir {descreverRegistro(tela.registroAguardandoRemocao)}? Essa ação não pode ser desfeita.
+          </p>
+          <footer className="modal-actions">
+            <button type="button" className="account-secondary-button" onClick={tela.cancelarRemocao} disabled={tela.isRemovendo}>
+              Cancelar
+            </button>
+            <button type="button" className="account-danger-button" onClick={tela.confirmarRemocao} disabled={tela.isRemovendo}>
+              {tela.isRemovendo ? "Excluindo..." : "Excluir"}
+            </button>
+          </footer>
+        </Modal>
       )}
 
       {tela.isModalAberto && (

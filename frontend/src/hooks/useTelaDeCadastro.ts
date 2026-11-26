@@ -27,12 +27,16 @@ export type TelaDeCadastro<RegistroDaTela extends Registro, Formulario> = {
   isSalvando: boolean;
   avisoDeSucesso: string;
   mensagemDeErroAoRemover: string;
+  registroAguardandoRemocao: RegistroDaTela | null;
+  isRemovendo: boolean;
   abrirCriacao: () => void;
   abrirEdicao: (registro: RegistroDaTela) => void;
   fecharModal: () => void;
   preencherCampo: (campo: keyof Formulario, valorDoCampo: string) => void;
   salvar: (evento: FormEvent<HTMLFormElement>) => Promise<void>;
-  removerComConfirmacao: (registro: RegistroDaTela, descricaoDoRegistro: string) => Promise<void>;
+  pedirConfirmacaoDeRemocao: (registro: RegistroDaTela) => void;
+  cancelarRemocao: () => void;
+  confirmarRemocao: () => Promise<void>;
 };
 
 export function useTelaDeCadastro<RegistroDaTela extends Registro, Dados, Formulario extends Record<string, string>>({
@@ -49,6 +53,8 @@ export function useTelaDeCadastro<RegistroDaTela extends Registro, Dados, Formul
   const [isSalvando, setIsSalvando] = useState<boolean>(false);
   const [avisoDeSucesso, setAvisoDeSucesso] = useState<string>("");
   const [mensagemDeErroAoRemover, setMensagemDeErroAoRemover] = useState<string>("");
+  const [registroAguardandoRemocao, setRegistroAguardandoRemocao] = useState<RegistroDaTela | null>(null);
+  const [isRemovendo, setIsRemovendo] = useState<boolean>(false);
 
   function limparAvisos(): void {
     setAvisoDeSucesso("");
@@ -93,15 +99,23 @@ export function useTelaDeCadastro<RegistroDaTela extends Registro, Dados, Formul
     }
   }
 
-  async function removerComConfirmacao(registro: RegistroDaTela, descricaoDoRegistro: string): Promise<void> {
-    if (!window.confirm(`Remover ${descricaoDoRegistro}? Essa ação não pode ser desfeita.`)) return;
+  function pedirConfirmacaoDeRemocao(registro: RegistroDaTela): void {
     limparAvisos();
+    setRegistroAguardandoRemocao(registro);
+  }
+
+  async function confirmarRemocao(): Promise<void> {
+    if (!registroAguardandoRemocao) return;
+    setIsRemovendo(true);
     try {
-      await servico.remover(registro.id);
+      await servico.remover(registroAguardandoRemocao.id);
       setAvisoDeSucesso("Registro removido com sucesso.");
       lista.recarregar();
     } catch (erro: unknown) {
       setMensagemDeErroAoRemover(lerErrosDaApi(erro).mensagemGeral);
+    } finally {
+      setRegistroAguardandoRemocao(null);
+      setIsRemovendo(false);
     }
   }
 
@@ -114,11 +128,15 @@ export function useTelaDeCadastro<RegistroDaTela extends Registro, Dados, Formul
     isSalvando,
     avisoDeSucesso,
     mensagemDeErroAoRemover,
+    registroAguardandoRemocao,
+    isRemovendo,
     abrirCriacao: () => abrirModal(formularioVazio, null),
     abrirEdicao: (registro: RegistroDaTela) => abrirModal(montarFormulario(registro), registro.id),
     fecharModal: () => setIsModalAberto(false),
     preencherCampo,
     salvar,
-    removerComConfirmacao,
+    pedirConfirmacaoDeRemocao,
+    cancelarRemocao: () => setRegistroAguardandoRemocao(null),
+    confirmarRemocao,
   };
 }

@@ -112,6 +112,10 @@
 .modal-form { display: flex; flex-direction: column; gap: 15px; }
 .modal-form .account-message { margin: 0; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
+.modal-confirmation { margin: 0 0 21px; color: #737e93; font-size: 13px; line-height: 1.6; }
+.account-danger-button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 0 16px; border: 1px solid #a73d46; border-radius: 8px; color: #fff; background: #a73d46; font-size: 12px; font-weight: 750; white-space: nowrap; }
+.account-danger-button:hover:not(:disabled) { background: #8f323a; }
+.account-danger-button:disabled { opacity: .6; cursor: wait; }
 .field select { width: 100%; min-height: 48px; padding: 0 12px; border: 1px solid #e0e5ed; border-radius: 9px; outline: none; color: #24304d; background: #fff; font-size: 13px; }
 .field select:focus { border-color: #6976dd; box-shadow: 0 0 0 3px rgba(104,117,220,.13); }
 .field select[aria-invalid="true"] { border-color: #b42318; }
