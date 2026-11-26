@@ -1,5 +1,4 @@
 import { useEffect, useRef, type JSX, type ReactNode, type RefObject } from "react";
-import { X } from "lucide-react";
 
 type PropriedadesDoModal = {
   titulo: string;
@@ -19,7 +18,7 @@ export function Modal({ titulo, aoFechar, children }: PropriedadesDoModal): JSX.
     <dialog ref={referenciaDoDialogo} className="modal" aria-label={titulo} onClose={aoFechar}>
       <header className="modal-header">
         <h2>{titulo}</h2>
-        <button type="button" className="icon-button" aria-label="Fechar" onClick={aoFechar}><X size={18} /></button>
+        <button type="button" className="modal-close" onClick={aoFechar}>Fechar</button>
       </header>
       {children}
     </dialog>
