@@ -4,9 +4,8 @@ import { once } from "node:events";
 import type { Server } from "node:http";
 import type { AddressInfo } from "node:net";
 import test, { after, before } from "node:test";
-import express, { type Express, type Router } from "express";
 import { criarBancoTemporario, type BancoTemporario } from "./bancoTemporario.js";
-import { tratarErros, type ErroDeCampo } from "../src/middlewares/tratarErros.js";
+import type { ErroDeCampo } from "../src/middlewares/tratarErros.js";
 import type { DadosDeReserva, DadosDeSala } from "shared";
 import type { PrismaClient } from "../src/generated/prisma/client.js";
 
@@ -77,20 +76,8 @@ before(async () => {
   process.env.JWT_SECRET = "segredo-apenas-para-teste";
 
   prisma = (await import("../src/config/prisma.js")).default;
-  const rotas: Router[] = [
-    (await import("../src/routes/usuarioRoute.js")).rotasDeUsuarios,
-    (await import("../src/routes/autenticacaoRoute.js")).rotasDeAutenticacao,
-    (await import("../src/routes/blocoRoute.js")).rotasDeBlocos,
-    (await import("../src/routes/clienteRoute.js")).rotasDeClientes,
-    (await import("../src/routes/salaRoute.js")).rotasDeSalas,
-    (await import("../src/routes/reservaRoute.js")).rotasDeReservas,
-  ];
-
-  const app: Express = express();
-  app.use(express.json());
-  for (const rota of rotas) app.use(rota);
-  app.use(tratarErros);
-  servidor = app.listen(0, "127.0.0.1");
+  const { criarAplicacao } = await import("../src/aplicacao.js");
+  servidor = criarAplicacao().listen(0, "127.0.0.1");
   await once(servidor, "listening");
   enderecoBase = `http://127.0.0.1:${(servidor.address() as AddressInfo).port}`;
 });
