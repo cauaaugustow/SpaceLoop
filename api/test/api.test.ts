@@ -5,7 +5,7 @@ import type { Server } from "node:http";
 import type { AddressInfo } from "node:net";
 import test, { after, before } from "node:test";
 import { criarBancoTemporario, type BancoTemporario } from "./bancoTemporario.js";
-import type { ErroDeCampo } from "../src/middlewares/tratarErros.js";
+import type { ErroDeCampo } from "shared";
 import type { DadosDeReserva, DadosDeSala } from "shared";
 import type { PrismaClient } from "../src/generated/prisma/client.js";
 

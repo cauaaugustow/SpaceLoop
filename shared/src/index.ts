@@ -1,4 +1,5 @@
 export * from "./turnos.js";
+export * from "./erroDaApi.js";
 export { MAIOR_ID_DO_BANCO } from "./schemas/campos.js";
 export * from "./dataDaReserva.js";
 export * from "./schemas/usuarioSchema.js";

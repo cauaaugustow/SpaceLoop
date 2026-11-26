@@ -1,9 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import { ZodError } from "zod";
-
-export type ErroDeCampo = { campo: string; mensagem: string };
-
-export type RespostaDeErro = { mensagem: string; erros?: ErroDeCampo[] | undefined };
+import type { ErroDeCampo, RespostaDeErro } from "shared";
 
 type ErroDaAplicacao = Error & { statusCode?: number; campo?: string; type?: string };
 

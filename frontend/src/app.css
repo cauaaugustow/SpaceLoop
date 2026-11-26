@@ -118,10 +118,12 @@ button { cursor: pointer; }
 .field input:hover { border-color: #bfc7da; }
 .field input:focus { border-color: #6976dd; box-shadow: 0 0 0 3px rgba(104,117,220,.13); }
 .field input.with-icon { padding-left: 42px; }
-.field input[type='password'], .field input[name='password'], .field input[name='confirm-password'] { padding-right: 45px; }
+.field input[type='password'], .field input[name='senha'], .field input[name='confirmacaoDaSenha'] { padding-right: 45px; }
 .field-icon { position: absolute; left: 14px; top: 50%; z-index: 1; color: #9ca6bb; transform: translateY(-50%); pointer-events: none; }
 .password-toggle { position: absolute; right: 12px; top: 50%; width: 25px; height: 27px; display: grid; place-items: center; padding: 0; border: 0; color: #9ca6bb; background: transparent; transform: translateY(-50%); }
 .password-toggle:hover { color: #4d59ca; }
+.field-error { display: block; margin-top: 6px; color: #b42318; font-size: 12px; }
+.field input[aria-invalid="true"] { border-color: #b42318; }
 .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .primary-button { width: 100%; min-height: 50px; margin-top: 8px; padding: 0 17px; display: flex; align-items: center; justify-content: center; gap: 10px; border: 0; border-radius: 9px; color: #fff; background: #4652cb; box-shadow: 0 9px 22px rgba(70,82,203,.22); font-size: 13px; font-weight: 700; transition: background .2s, transform .2s, box-shadow .2s; }
 .primary-button:hover:not(:disabled) { background: #3440b6; box-shadow: 0 11px 25px rgba(70,82,203,.3); transform: translateY(-1px); }
