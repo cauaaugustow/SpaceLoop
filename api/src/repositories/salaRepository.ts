@@ -1,34 +1,26 @@
 import type { Prisma } from "../generated/prisma/client.js";
 import prisma from "../config/prisma.js";
 
-export const camposDaSala = {
-  id: true,
-  nome: true,
-  capacidade: true,
-  descricao: true,
-  preco: true,
-  idBloco: true,
+export const relacoesDaSala = {
   bloco: { select: { nome: true } },
-  criadoEm: true,
-  atualizadoEm: true,
-} satisfies Prisma.SalaSelect;
+} satisfies Prisma.SalaInclude;
 
-export type SalaSelecionada = Prisma.SalaGetPayload<{ select: typeof camposDaSala }>;
+export type SalaSelecionada = Prisma.SalaGetPayload<{ include: typeof relacoesDaSala }>;
 
 export async function listarSalas(): Promise<SalaSelecionada[]> {
-  return prisma.sala.findMany({ select: camposDaSala, orderBy: { nome: "asc" } });
+  return prisma.sala.findMany({ include: relacoesDaSala, orderBy: { nome: "asc" } });
 }
 
 export async function buscarSalaPorId(id: number): Promise<SalaSelecionada | null> {
-  return prisma.sala.findUnique({ where: { id }, select: camposDaSala });
+  return prisma.sala.findUnique({ where: { id }, include: relacoesDaSala });
 }
 
 export async function criarSala(dadosDaSala: Prisma.SalaUncheckedCreateInput): Promise<SalaSelecionada> {
-  return prisma.sala.create({ data: dadosDaSala, select: camposDaSala });
+  return prisma.sala.create({ data: dadosDaSala, include: relacoesDaSala });
 }
 
 export async function atualizarSala(id: number, dadosDaSala: Prisma.SalaUncheckedUpdateInput): Promise<SalaSelecionada> {
-  return prisma.sala.update({ where: { id }, data: dadosDaSala, select: camposDaSala });
+  return prisma.sala.update({ where: { id }, data: dadosDaSala, include: relacoesDaSala });
 }
 
 export async function removerSala(id: number): Promise<void> {
