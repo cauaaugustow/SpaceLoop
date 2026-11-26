@@ -1,0 +1,8 @@
+{
+  "name": "spaceloop",
+  "private": true,
+  "workspaces": ["shared", "api", "frontend"],
+  "scripts": {
+    "prepare": "npm run build -w shared"
+  }
+}
