@@ -1,6 +1,7 @@
 import type { DadosDeCliente } from "shared";
 import * as clienteRepository from "../repositories/clienteRepository.js";
 import type { ClienteSelecionado } from "../repositories/clienteRepository.js";
+import { contarReservasDoCliente } from "../repositories/reservaRepository.js";
 import { ErroDeDominio } from "../erros/erroDeDominio.js";
 import { lancarErroTraduzidoDoPrisma } from "../erros/lancarErroTraduzidoDoPrisma.js";
 
@@ -52,7 +53,7 @@ export async function atualizarCliente(id: number, dadosDoCliente: DadosDeClient
 
 export async function removerCliente(id: number): Promise<void> {
   await buscarClientePorId(id);
-  if ((await clienteRepository.contarReservasDoCliente(id)) > 0) throw erroDeClienteComReservas();
+  if ((await contarReservasDoCliente(id)) > 0) throw erroDeClienteComReservas();
   try {
     await clienteRepository.removerCliente(id);
   } catch (erro: unknown) {

@@ -7,15 +7,38 @@ import test, { after, before } from "node:test";
 import express, { type Express, type Router } from "express";
 import { criarBancoTemporario, type BancoTemporario } from "./bancoTemporario.js";
 import { tratarErros, type ErroDeCampo } from "../src/middlewares/tratarErros.js";
-import type { PrismaClient, Reserva } from "../src/generated/prisma/client.js";
+import type { DadosDeReserva, DadosDeSala } from "shared";
+import type { PrismaClient } from "../src/generated/prisma/client.js";
 
-type Resposta = { status: number; corpo: any };
+type RegistroRetornado = {
+  id: number;
+  nome: string;
+  cpf: string;
+  email: string;
+  preco: number;
+  dia: string;
+  turno: string;
+  telefone: string | null;
+  idBloco: number;
+  bloco: { nome: string };
+  sala: { nome: string };
+  cliente: { nome: string };
+};
+
+type CorpoDaResposta = RegistroRetornado & {
+  mensagem: string;
+  erros: ErroDeCampo[];
+  token: string;
+  usuario: object;
+};
+
+type Resposta<Corpo = CorpoDaResposta> = { status: number; corpo: Corpo };
 
 type CrudDeExemplo = {
   caminho: string;
   criacao: () => object;
   edicao: () => object;
-  campoEditado: string;
+  campoEditado: keyof RegistroRetornado;
   valorEsperado: unknown;
 };
 
@@ -27,7 +50,12 @@ let servidor: Server;
 let enderecoBase: string;
 let token: string = "";
 
-async function requisitar(caminho: string, metodo: string = "GET", corpo?: object, tokenEnviado: string = token): Promise<Resposta> {
+async function requisitar<Corpo = CorpoDaResposta>(
+  caminho: string,
+  metodo: string = "GET",
+  corpo?: object,
+  tokenEnviado: string = token,
+): Promise<Resposta<Corpo>> {
   const resposta: globalThis.Response = await fetch(`${enderecoBase}${caminho}`, {
     method: metodo,
     headers: {
@@ -143,7 +171,7 @@ test("as quatro tabelas têm CRUD protegido com os status esperados", async () =
     assert.equal(criado.status, 201, caminho);
     const caminhoDoItem: string = `${caminho}/${criado.corpo.id}`;
 
-    assert.equal((await requisitar(caminho)).corpo.some((item: { id: number }) => item.id === criado.corpo.id), true, caminho);
+    assert.equal((await requisitar<RegistroRetornado[]>(caminho)).corpo.some((registro: RegistroRetornado) => registro.id === criado.corpo.id), true, caminho);
     assert.equal((await requisitar(caminhoDoItem)).status, 200, caminho);
     assert.equal((await requisitar(caminhoDoItem, "PUT", {})).status, 400, caminho);
 
@@ -177,14 +205,14 @@ test("valores repetidos, relações e regras de reserva", async () => {
   assert.deepEqual(listarCamposComErro(emailRepetido), ["email"]);
   assert.equal((await requisitar(`/clientes/${cliente.corpo.id}`, "PUT", { nome: "Bruno", cpf: "98765432100", email: "bruno@teste.local" })).status, 200);
 
-  const dadosDaSala: object = { nome: "Sala Duna", capacidade: 8, precoLocacao: 90, idBloco: bloco.corpo.id };
+  const dadosDaSala: DadosDeSala = { nome: "Sala Duna", capacidade: 8, precoLocacao: 90, idBloco: bloco.corpo.id };
   assert.deepEqual(listarCamposComErro(await requisitar("/salas", "POST", { ...dadosDaSala, idBloco: 999999 })), ["idBloco"]);
   assert.deepEqual(listarCamposComErro(await requisitar("/salas", "POST", { ...dadosDaSala, precoLocacao: null })), ["precoLocacao"]);
   const sala: Resposta = await requisitar("/salas", "POST", dadosDaSala);
   assert.equal(sala.corpo.bloco.nome, "Bloco B");
 
   const dia: string = diaAPartirDeHoje(40);
-  const dadosDaReserva = { dia, turno: "manha", idSala: sala.corpo.id, idCliente: cliente.corpo.id };
+  const dadosDaReserva: Omit<DadosDeReserva, "turno"> & { turno: string } = { dia, turno: "manha", idSala: sala.corpo.id, idCliente: cliente.corpo.id };
   assert.equal((await requisitar("/reservas", "POST", { ...dadosDaReserva, dia: "2020-01-01" })).status, 400);
   assert.deepEqual((await requisitar("/reservas", "POST", { ...dadosDaReserva, dia: "2099-02-30" })).corpo.erros, [{ campo: "dia", mensagem: "Informe uma data válida" }]);
   assert.deepEqual(listarCamposComErro(await requisitar("/reservas", "POST", { ...dadosDaReserva, idCliente: 999999 })), ["idCliente"]);
@@ -192,21 +220,16 @@ test("valores repetidos, relações e regras de reserva", async () => {
   const reserva: Resposta = await requisitar("/reservas", "POST", dadosDaReserva);
   assert.equal(reserva.status, 201);
   assert.equal(reserva.corpo.dia.slice(0, 10), dia);
-  const reservaListada: Reserva & { sala: { nome: string }; cliente: { nome: string } } = (await requisitar("/reservas")).corpo.find(
-    (item: Reserva) => item.id === reserva.corpo.id,
+  const reservaListada: RegistroRetornado | undefined = (await requisitar<RegistroRetornado[]>("/reservas")).corpo.find(
+    (registro: RegistroRetornado) => registro.id === reserva.corpo.id,
   );
+  assert.ok(reservaListada);
   assert.equal(reservaListada.sala.nome, "Sala Duna");
   assert.equal(reservaListada.cliente.nome, "Bruno");
 
   assert.equal((await requisitar("/reservas", "POST", dadosDaReserva)).status, 409);
   const reservaDaTarde: Resposta = await requisitar("/reservas", "POST", { ...dadosDaReserva, turno: "tarde" });
   assert.equal((await requisitar(`/reservas/${reservaDaTarde.corpo.id}`, "PUT", dadosDaReserva)).status, 409);
-
-  const temSalaDisponivel = async (turno: string): Promise<boolean> =>
-    (await requisitar(`/salas?disponivel=true&dia=${dia}&turno=${turno}`)).corpo.some((item: { id: number }) => item.id === sala.corpo.id);
-  assert.equal(await temSalaDisponivel("manha"), false);
-  assert.equal(await temSalaDisponivel("noite"), true);
-  assert.equal((await requisitar("/salas?disponivel=true&dia=2026-02-30&turno=manha")).status, 400);
 
   assert.equal((await requisitar(`/blocos/${bloco.corpo.id}`, "DELETE")).status, 409);
   assert.equal((await requisitar(`/salas/${sala.corpo.id}`, "DELETE")).status, 409);

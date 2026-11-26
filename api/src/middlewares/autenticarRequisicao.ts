@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import jwt, { type JwtPayload } from "jsonwebtoken";
-import prisma from "../config/prisma.js";
+import { buscarUsuarioPorId, type UsuarioSelecionado } from "../repositories/usuarioRepository.js";
 import { lerVariavelObrigatoria } from "../config/env.js";
 
 export async function autenticarRequisicao(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -34,10 +34,7 @@ export async function autenticarRequisicao(req: Request, res: Response, next: Ne
   }
 
   try {
-    const usuario: { id: number } | null = await prisma.usuario.findUnique({
-      where: { id },
-      select: { id: true },
-    });
+    const usuario: UsuarioSelecionado | null = await buscarUsuarioPorId(id);
 
     if (!usuario) {
       res.status(401).json({ mensagem: "Usuário não encontrado" });

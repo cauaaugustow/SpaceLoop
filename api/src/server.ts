@@ -1,5 +1,5 @@
+import "dotenv/config";
 import express, { type Express } from "express";
-import dotenv from "dotenv";
 import cors from "cors";
 import { rotasDeUsuarios } from "./routes/usuarioRoute.js";
 import { rotasDeAutenticacao } from "./routes/autenticacaoRoute.js";
@@ -8,7 +8,6 @@ import { rotasDeBlocos } from "./routes/blocoRoute.js";
 import { rotasDeClientes } from "./routes/clienteRoute.js";
 import { rotasDeReservas } from "./routes/reservaRoute.js";
 import { tratarErros } from "./middlewares/tratarErros.js";
-dotenv.config();
 
 const app: Express = express();
 const porta: string | number = process.env.PORT || 3000;

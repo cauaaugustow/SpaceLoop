@@ -18,7 +18,4 @@ export const reservaSchema = z.object({
   idCliente: inteiroPositivo("Selecione o cliente"),
 });
 
-export const disponibilidadeSchema = reservaSchema.pick({ dia: true, turno: true });
-
 export type DadosDeReserva = z.infer<typeof reservaSchema>;
-export type DadosDeDisponibilidade = z.infer<typeof disponibilidadeSchema>;

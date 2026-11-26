@@ -34,3 +34,11 @@ export async function atualizarReserva(id: number, dadosDaReserva: Prisma.Reserv
 export async function removerReserva(id: number): Promise<void> {
   await prisma.reserva.delete({ where: { id } });
 }
+
+export async function contarReservasDaSala(idSala: number): Promise<number> {
+  return prisma.reserva.count({ where: { idSala } });
+}
+
+export async function contarReservasDoCliente(idCliente: number): Promise<number> {
+  return prisma.reserva.count({ where: { idCliente } });
+}

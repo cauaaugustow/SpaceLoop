@@ -34,7 +34,3 @@ export async function atualizarBloco(id: number, dadosDoBloco: Prisma.BlocoUpdat
 export async function removerBloco(id: number): Promise<void> {
   await prisma.bloco.delete({ where: { id } });
 }
-
-export async function contarSalasDoBloco(idBloco: number): Promise<number> {
-  return prisma.sala.count({ where: { idBloco } });
-}

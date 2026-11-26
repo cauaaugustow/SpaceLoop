@@ -1,12 +1,11 @@
-import { disponibilidadeSchema, type DadosDeDisponibilidade, type DadosDeSala } from "shared";
+import type { DadosDeSala } from "shared";
 import * as salaRepository from "../repositories/salaRepository.js";
 import type { SalaSelecionada } from "../repositories/salaRepository.js";
 import { buscarBlocoPorId } from "../repositories/blocoRepository.js";
+import { contarReservasDaSala } from "../repositories/reservaRepository.js";
+import type { Prisma } from "../generated/prisma/client.js";
 import { ErroDeDominio } from "../erros/erroDeDominio.js";
 import { lancarErroTraduzidoDoPrisma } from "../erros/lancarErroTraduzidoDoPrisma.js";
-import { converterDiaEmData } from "../utilitarios/converterDiaEmData.js";
-
-export type FiltrosDeConsultaDeSalas = { disponivel?: unknown; dia?: unknown; turno?: unknown };
 
 const erroDeSalaInexistente = (): ErroDeDominio => new ErroDeDominio("Sala não encontrada", 404);
 const erroDeBlocoInexistente = (): ErroDeDominio => new ErroDeDominio("Bloco não encontrado", 404, "idBloco");
@@ -17,15 +16,12 @@ async function exigirBlocoExistente(idBloco: number): Promise<void> {
   if (!(await buscarBlocoPorId(idBloco))) throw erroDeBlocoInexistente();
 }
 
-function montarDadosDaSala({ nome, capacidade, descricao, precoLocacao, idBloco }: DadosDeSala) {
+function montarDadosDaSala({ nome, capacidade, descricao, precoLocacao, idBloco }: DadosDeSala): Prisma.SalaUncheckedCreateInput {
   return { nome, capacidade, descricao: descricao ?? null, preco: precoLocacao, idBloco };
 }
 
-export async function listarSalas({ disponivel, dia, turno }: FiltrosDeConsultaDeSalas = {}): Promise<SalaSelecionada[]> {
-  if (disponivel !== "true") return salaRepository.listarSalas();
-
-  const disponibilidade: DadosDeDisponibilidade = disponibilidadeSchema.parse({ dia, turno });
-  return salaRepository.listarSalas({ dia: converterDiaEmData(disponibilidade.dia), turno: disponibilidade.turno });
+export async function listarSalas(): Promise<SalaSelecionada[]> {
+  return salaRepository.listarSalas();
 }
 
 export async function buscarSalaPorId(id: number): Promise<SalaSelecionada> {
@@ -55,7 +51,7 @@ export async function atualizarSala(id: number, dadosDaSala: DadosDeSala): Promi
 
 export async function removerSala(id: number): Promise<void> {
   await buscarSalaPorId(id);
-  if ((await salaRepository.contarReservasDaSala(id)) > 0) throw erroDeSalaComReservas();
+  if ((await contarReservasDaSala(id)) > 0) throw erroDeSalaComReservas();
   try {
     await salaRepository.removerSala(id);
   } catch (erro: unknown) {

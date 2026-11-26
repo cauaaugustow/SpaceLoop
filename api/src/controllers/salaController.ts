@@ -3,7 +3,7 @@ import * as salaService from "../services/salaService.js";
 import { lerIdDoParametro } from "../utilitarios/lerIdDoParametro.js";
 
 export async function listarSalas(req: Request, res: Response): Promise<void> {
-  res.json(await salaService.listarSalas(req.query));
+  res.json(await salaService.listarSalas());
 }
 
 export async function buscarSala(req: Request, res: Response): Promise<void> {

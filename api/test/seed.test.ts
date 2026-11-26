@@ -20,7 +20,7 @@ test("seed preenche todas as tabelas e não duplica quando roda em outro dia", a
       const consulta: pg.QueryResult<{ quantidade: number }> = await cliente.query(
         `SELECT COUNT(*)::int AS quantidade FROM ${tabela}`,
       );
-      quantidades.push(consulta.rows[0]!.quantidade);
+      quantidades.push(consulta.rows[0]?.quantidade ?? -1);
     }
     return quantidades;
   };

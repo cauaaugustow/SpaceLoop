@@ -40,7 +40,3 @@ export async function atualizarCliente(id: number, dadosDoCliente: Prisma.Client
 export async function removerCliente(id: number): Promise<void> {
   await prisma.cliente.delete({ where: { id } });
 }
-
-export async function contarReservasDoCliente(idCliente: number): Promise<number> {
-  return prisma.reserva.count({ where: { idCliente } });
-}

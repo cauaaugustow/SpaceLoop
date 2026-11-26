@@ -15,14 +15,8 @@ export const camposDaSala = {
 
 export type SalaSelecionada = Prisma.SalaGetPayload<{ select: typeof camposDaSala }>;
 
-export type FiltroDeDisponibilidade = { dia: Date; turno: string };
-
-export async function listarSalas(filtro?: FiltroDeDisponibilidade): Promise<SalaSelecionada[]> {
-  const where: Prisma.SalaWhereInput = filtro
-    ? { reservas: { none: { dia: filtro.dia, turno: filtro.turno } } }
-    : {};
-
-  return prisma.sala.findMany({ where, select: camposDaSala, orderBy: { nome: "asc" } });
+export async function listarSalas(): Promise<SalaSelecionada[]> {
+  return prisma.sala.findMany({ select: camposDaSala, orderBy: { nome: "asc" } });
 }
 
 export async function buscarSalaPorId(id: number): Promise<SalaSelecionada | null> {
@@ -41,6 +35,6 @@ export async function removerSala(id: number): Promise<void> {
   await prisma.sala.delete({ where: { id } });
 }
 
-export async function contarReservasDaSala(idSala: number): Promise<number> {
-  return prisma.reserva.count({ where: { idSala } });
+export async function contarSalasDoBloco(idBloco: number): Promise<number> {
+  return prisma.sala.count({ where: { idBloco } });
 }

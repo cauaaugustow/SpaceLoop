@@ -1,6 +1,7 @@
 import type { DadosDeBloco } from "shared";
 import * as blocoRepository from "../repositories/blocoRepository.js";
 import type { BlocoSelecionado } from "../repositories/blocoRepository.js";
+import { contarSalasDoBloco } from "../repositories/salaRepository.js";
 import { ErroDeDominio } from "../erros/erroDeDominio.js";
 import { lancarErroTraduzidoDoPrisma } from "../erros/lancarErroTraduzidoDoPrisma.js";
 
@@ -44,7 +45,7 @@ export async function atualizarBloco(id: number, { nome, descricao }: DadosDeBlo
 
 export async function removerBloco(id: number): Promise<void> {
   await buscarBlocoPorId(id);
-  if ((await blocoRepository.contarSalasDoBloco(id)) > 0) throw erroDeBlocoComSalas();
+  if ((await contarSalasDoBloco(id)) > 0) throw erroDeBlocoComSalas();
   try {
     await blocoRepository.removerBloco(id);
   } catch (erro: unknown) {
