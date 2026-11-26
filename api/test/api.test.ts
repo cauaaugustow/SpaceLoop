@@ -9,7 +9,7 @@ import { criarBancoTemporario, type BancoTemporario } from "./bancoTemporario.js
 import { tratarErros, type ErroDeCampo } from "../src/middlewares/tratarErros.js";
 import type { PrismaClient, Reserva } from "../src/generated/prisma/client.js";
 
-type Resposta = { status: number; dados: any };
+type Resposta = { status: number; corpo: any };
 
 type CrudDeExemplo = {
   caminho: string;
@@ -37,11 +37,11 @@ async function requisitar(caminho: string, metodo: string = "GET", corpo?: objec
     ...(corpo && { body: JSON.stringify(corpo) }),
   });
   const texto: string = await resposta.text();
-  return { status: resposta.status, dados: texto ? JSON.parse(texto) : null };
+  return { status: resposta.status, corpo: texto ? JSON.parse(texto) : null };
 }
 
 const listarCamposComErro = (resposta: Resposta): string[] =>
-  resposta.dados.errors.map((erro: ErroDeCampo) => erro.campo).sort();
+  resposta.corpo.erros.map((erro: ErroDeCampo) => erro.campo).sort();
 
 before(async () => {
   banco = await criarBancoTemporario();
@@ -50,12 +50,12 @@ before(async () => {
 
   prisma = (await import("../src/config/prisma.js")).default;
   const rotas: Router[] = [
-    (await import("../src/routes/userRoute.js")).userRoutes,
-    (await import("../src/routes/authRoute.js")).authRoutes,
-    (await import("../src/routes/blocoRoute.js")).blocoRoutes,
-    (await import("../src/routes/clienteRoute.js")).clienteRoutes,
-    (await import("../src/routes/salaRoute.js")).salaRoutes,
-    (await import("../src/routes/reservaRoute.js")).reservaRoutes,
+    (await import("../src/routes/usuarioRoute.js")).rotasDeUsuarios,
+    (await import("../src/routes/autenticacaoRoute.js")).rotasDeAutenticacao,
+    (await import("../src/routes/blocoRoute.js")).rotasDeBlocos,
+    (await import("../src/routes/clienteRoute.js")).rotasDeClientes,
+    (await import("../src/routes/salaRoute.js")).rotasDeSalas,
+    (await import("../src/routes/reservaRoute.js")).rotasDeReservas,
   ];
 
   const app: Express = express();
@@ -81,9 +81,9 @@ test("cadastro e login não devolvem a senha e validam cada campo", async () => 
   const usuario: object = { nome: "Professor", email: "PROFESSOR@teste.local", senha: "senha-forte-123" };
   const cadastro: Resposta = await requisitar("/usuario", "POST", usuario);
   assert.equal(cadastro.status, 201);
-  assert.equal(cadastro.dados.email, "professor@teste.local");
-  assert.equal("senhaHash" in cadastro.dados, false);
-  assert.equal("senha" in cadastro.dados, false);
+  assert.equal(cadastro.corpo.email, "professor@teste.local");
+  assert.equal("senhaHash" in cadastro.corpo, false);
+  assert.equal("senha" in cadastro.corpo, false);
 
   const cadastroRepetido: Resposta = await requisitar("/usuario", "POST", usuario);
   assert.equal(cadastroRepetido.status, 409);
@@ -94,15 +94,15 @@ test("cadastro e login não devolvem a senha e validam cada campo", async () => 
 
   const login: Resposta = await requisitar("/login", "POST", { email: "professor@teste.local", senha: "senha-forte-123" });
   assert.equal(login.status, 200);
-  assert.equal("senhaHash" in login.dados.usuario, false);
-  token = login.dados.token;
+  assert.equal("senhaHash" in login.corpo.usuario, false);
+  token = login.corpo.token;
 });
 
 test("as quatro tabelas têm CRUD protegido com os status esperados", async () => {
   const blocoDeApoio: Resposta = await requisitar("/blocos", "POST", { nome: "Bloco de apoio" });
-  const salaDeApoio: Resposta = await requisitar("/salas", "POST", { nome: "Sala de apoio", capacidade: 2, precoLocacao: 0, idBloco: blocoDeApoio.dados.id });
+  const salaDeApoio: Resposta = await requisitar("/salas", "POST", { nome: "Sala de apoio", capacidade: 2, precoLocacao: 0, idBloco: blocoDeApoio.corpo.id });
   const clienteDeApoio: Resposta = await requisitar("/clientes", "POST", { nome: "Cliente de apoio", cpf: "111.222.333-44", email: "apoio@teste.local" });
-  assert.equal(clienteDeApoio.dados.cpf, "11122233344");
+  assert.equal(clienteDeApoio.corpo.cpf, "11122233344");
 
   const cruds: CrudDeExemplo[] = [
     {
@@ -121,15 +121,15 @@ test("as quatro tabelas têm CRUD protegido com os status esperados", async () =
     },
     {
       caminho: "/salas",
-      criacao: () => ({ nome: "Sala Farol", capacidade: 4, precoLocacao: 50, idBloco: blocoDeApoio.dados.id }),
-      edicao: () => ({ nome: "Sala Farol", capacidade: 4, precoLocacao: "75", idBloco: blocoDeApoio.dados.id }),
+      criacao: () => ({ nome: "Sala Farol", capacidade: 4, precoLocacao: 50, idBloco: blocoDeApoio.corpo.id }),
+      edicao: () => ({ nome: "Sala Farol", capacidade: 4, precoLocacao: "75", idBloco: blocoDeApoio.corpo.id }),
       campoEditado: "preco",
       valorEsperado: 75,
     },
     {
       caminho: "/reservas",
-      criacao: () => ({ dia: diaAPartirDeHoje(30), turno: "manha", idSala: salaDeApoio.dados.id, idCliente: clienteDeApoio.dados.id }),
-      edicao: () => ({ dia: diaAPartirDeHoje(31), turno: "noite", idSala: salaDeApoio.dados.id, idCliente: clienteDeApoio.dados.id }),
+      criacao: () => ({ dia: diaAPartirDeHoje(30), turno: "manha", idSala: salaDeApoio.corpo.id, idCliente: clienteDeApoio.corpo.id }),
+      edicao: () => ({ dia: diaAPartirDeHoje(31), turno: "noite", idSala: salaDeApoio.corpo.id, idCliente: clienteDeApoio.corpo.id }),
       campoEditado: "turno",
       valorEsperado: "NOITE",
     },
@@ -141,19 +141,19 @@ test("as quatro tabelas têm CRUD protegido com os status esperados", async () =
 
     const criado: Resposta = await requisitar(caminho, "POST", criacao());
     assert.equal(criado.status, 201, caminho);
-    const caminhoDoItem: string = `${caminho}/${criado.dados.id}`;
+    const caminhoDoItem: string = `${caminho}/${criado.corpo.id}`;
 
-    assert.equal((await requisitar(caminho)).dados.some((item: { id: number }) => item.id === criado.dados.id), true, caminho);
+    assert.equal((await requisitar(caminho)).corpo.some((item: { id: number }) => item.id === criado.corpo.id), true, caminho);
     assert.equal((await requisitar(caminhoDoItem)).status, 200, caminho);
     assert.equal((await requisitar(caminhoDoItem, "PUT", {})).status, 400, caminho);
 
     const editado: Resposta = await requisitar(caminhoDoItem, "PUT", edicao());
     assert.equal(editado.status, 200, caminho);
-    assert.equal(editado.dados[campoEditado], valorEsperado, caminho);
+    assert.equal(editado.corpo[campoEditado], valorEsperado, caminho);
 
     const removido: Resposta = await requisitar(caminhoDoItem, "DELETE");
     assert.equal(removido.status, 204, caminho);
-    assert.equal(removido.dados, null, caminho);
+    assert.equal(removido.corpo, null, caminho);
 
     assert.equal((await requisitar(caminhoDoItem)).status, 404, caminho);
     assert.equal((await requisitar(caminhoDoItem, "PUT", edicao())).status, 404, caminho);
@@ -175,40 +175,40 @@ test("valores repetidos, relações e regras de reserva", async () => {
   assert.deepEqual(listarCamposComErro(cpfRepetido), ["cpf"]);
   const emailRepetido: Resposta = await requisitar("/clientes", "POST", { nome: "Outro", cpf: "12312312312", email: "BRUNO@teste.local" });
   assert.deepEqual(listarCamposComErro(emailRepetido), ["email"]);
-  assert.equal((await requisitar(`/clientes/${cliente.dados.id}`, "PUT", { nome: "Bruno", cpf: "98765432100", email: "bruno@teste.local" })).status, 200);
+  assert.equal((await requisitar(`/clientes/${cliente.corpo.id}`, "PUT", { nome: "Bruno", cpf: "98765432100", email: "bruno@teste.local" })).status, 200);
 
-  const dadosDaSala: object = { nome: "Sala Duna", capacidade: 8, precoLocacao: 90, idBloco: bloco.dados.id };
+  const dadosDaSala: object = { nome: "Sala Duna", capacidade: 8, precoLocacao: 90, idBloco: bloco.corpo.id };
   assert.deepEqual(listarCamposComErro(await requisitar("/salas", "POST", { ...dadosDaSala, idBloco: 999999 })), ["idBloco"]);
   assert.deepEqual(listarCamposComErro(await requisitar("/salas", "POST", { ...dadosDaSala, precoLocacao: null })), ["precoLocacao"]);
   const sala: Resposta = await requisitar("/salas", "POST", dadosDaSala);
-  assert.equal(sala.dados.bloco.nome, "Bloco B");
+  assert.equal(sala.corpo.bloco.nome, "Bloco B");
 
   const dia: string = diaAPartirDeHoje(40);
-  const dadosDaReserva = { dia, turno: "manha", idSala: sala.dados.id, idCliente: cliente.dados.id };
+  const dadosDaReserva = { dia, turno: "manha", idSala: sala.corpo.id, idCliente: cliente.corpo.id };
   assert.equal((await requisitar("/reservas", "POST", { ...dadosDaReserva, dia: "2020-01-01" })).status, 400);
-  assert.deepEqual((await requisitar("/reservas", "POST", { ...dadosDaReserva, dia: "2099-02-30" })).dados.errors, [{ campo: "dia", message: "Informe uma data válida" }]);
+  assert.deepEqual((await requisitar("/reservas", "POST", { ...dadosDaReserva, dia: "2099-02-30" })).corpo.erros, [{ campo: "dia", mensagem: "Informe uma data válida" }]);
   assert.deepEqual(listarCamposComErro(await requisitar("/reservas", "POST", { ...dadosDaReserva, idCliente: 999999 })), ["idCliente"]);
 
   const reserva: Resposta = await requisitar("/reservas", "POST", dadosDaReserva);
   assert.equal(reserva.status, 201);
-  assert.equal(reserva.dados.dia.slice(0, 10), dia);
-  const reservaListada: Reserva & { sala: { nome: string }; cliente: { nome: string } } = (await requisitar("/reservas")).dados.find(
-    (item: Reserva) => item.id === reserva.dados.id,
+  assert.equal(reserva.corpo.dia.slice(0, 10), dia);
+  const reservaListada: Reserva & { sala: { nome: string }; cliente: { nome: string } } = (await requisitar("/reservas")).corpo.find(
+    (item: Reserva) => item.id === reserva.corpo.id,
   );
   assert.equal(reservaListada.sala.nome, "Sala Duna");
   assert.equal(reservaListada.cliente.nome, "Bruno");
 
   assert.equal((await requisitar("/reservas", "POST", dadosDaReserva)).status, 409);
   const reservaDaTarde: Resposta = await requisitar("/reservas", "POST", { ...dadosDaReserva, turno: "tarde" });
-  assert.equal((await requisitar(`/reservas/${reservaDaTarde.dados.id}`, "PUT", dadosDaReserva)).status, 409);
+  assert.equal((await requisitar(`/reservas/${reservaDaTarde.corpo.id}`, "PUT", dadosDaReserva)).status, 409);
 
   const temSalaDisponivel = async (turno: string): Promise<boolean> =>
-    (await requisitar(`/salas?disponivel=true&dia=${dia}&turno=${turno}`)).dados.some((item: { id: number }) => item.id === sala.dados.id);
+    (await requisitar(`/salas?disponivel=true&dia=${dia}&turno=${turno}`)).corpo.some((item: { id: number }) => item.id === sala.corpo.id);
   assert.equal(await temSalaDisponivel("manha"), false);
   assert.equal(await temSalaDisponivel("noite"), true);
   assert.equal((await requisitar("/salas?disponivel=true&dia=2026-02-30&turno=manha")).status, 400);
 
-  assert.equal((await requisitar(`/blocos/${bloco.dados.id}`, "DELETE")).status, 409);
-  assert.equal((await requisitar(`/salas/${sala.dados.id}`, "DELETE")).status, 409);
-  assert.equal((await requisitar(`/clientes/${cliente.dados.id}`, "DELETE")).status, 409);
+  assert.equal((await requisitar(`/blocos/${bloco.corpo.id}`, "DELETE")).status, 409);
+  assert.equal((await requisitar(`/salas/${sala.corpo.id}`, "DELETE")).status, 409);
+  assert.equal((await requisitar(`/clientes/${cliente.corpo.id}`, "DELETE")).status, 409);
 });

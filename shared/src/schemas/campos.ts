@@ -2,8 +2,8 @@ import { z } from "zod";
 
 export const MAIOR_ID_DO_BANCO: number = 2_147_483_647;
 
-function converterTextoEmNumero(valor: unknown): unknown {
-  return typeof valor === "string" && valor.trim() !== "" ? Number(valor) : valor;
+function converterTextoEmNumero(valorDoCampo: unknown): unknown {
+  return typeof valorDoCampo === "string" && valorDoCampo.trim() !== "" ? Number(valorDoCampo) : valorDoCampo;
 }
 
 export function textoObrigatorio(mensagem: string, tamanhoMinimo: number) {

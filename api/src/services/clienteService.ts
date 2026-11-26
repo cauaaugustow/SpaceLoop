@@ -1,8 +1,8 @@
 import type { DadosDeCliente } from "shared";
 import * as clienteRepository from "../repositories/clienteRepository.js";
 import type { ClienteSelecionado } from "../repositories/clienteRepository.js";
-import { ErroDeDominio } from "../error/erroDeDominio.js";
-import { lancarErroTraduzidoDoPrisma } from "../error/lancarErroTraduzidoDoPrisma.js";
+import { ErroDeDominio } from "../erros/erroDeDominio.js";
+import { lancarErroTraduzidoDoPrisma } from "../erros/lancarErroTraduzidoDoPrisma.js";
 
 const erroDeClienteInexistente = (): ErroDeDominio => new ErroDeDominio("Cliente não encontrado", 404);
 const erroDeCpfOuEmailRepetido = (): ErroDeDominio => new ErroDeDominio("CPF ou e-mail já cadastrado", 409);
@@ -31,20 +31,20 @@ export async function buscarClientePorId(id: number): Promise<ClienteSelecionado
   return cliente;
 }
 
-export async function criarCliente(dados: DadosDeCliente): Promise<ClienteSelecionado> {
-  await exigirCpfEEmailLivres(dados);
+export async function criarCliente(dadosDoCliente: DadosDeCliente): Promise<ClienteSelecionado> {
+  await exigirCpfEEmailLivres(dadosDoCliente);
   try {
-    return await clienteRepository.criarCliente({ ...dados, telefone: dados.telefone ?? null });
+    return await clienteRepository.criarCliente({ ...dadosDoCliente, telefone: dadosDoCliente.telefone ?? null });
   } catch (erro: unknown) {
     lancarErroTraduzidoDoPrisma(erro, { P2002: erroDeCpfOuEmailRepetido() });
   }
 }
 
-export async function atualizarCliente(id: number, dados: DadosDeCliente): Promise<ClienteSelecionado> {
+export async function atualizarCliente(id: number, dadosDoCliente: DadosDeCliente): Promise<ClienteSelecionado> {
   await buscarClientePorId(id);
-  await exigirCpfEEmailLivres(dados, id);
+  await exigirCpfEEmailLivres(dadosDoCliente, id);
   try {
-    return await clienteRepository.atualizarCliente(id, { ...dados, telefone: dados.telefone ?? null });
+    return await clienteRepository.atualizarCliente(id, { ...dadosDoCliente, telefone: dadosDoCliente.telefone ?? null });
   } catch (erro: unknown) {
     lancarErroTraduzidoDoPrisma(erro, { P2002: erroDeCpfOuEmailRepetido(), P2025: erroDeClienteInexistente() });
   }

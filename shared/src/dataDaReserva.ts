@@ -15,6 +15,6 @@ export function hojeNoFusoDaAplicacao(): string {
 }
 
 export function isDataExistente(dia: string): boolean {
-  const data: Date = new Date(`${dia}T00:00:00.000Z`);
-  return !Number.isNaN(data.getTime()) && data.toISOString().slice(0, 10) === dia;
+  const dataInterpretada: Date = new Date(`${dia}T00:00:00.000Z`);
+  return !Number.isNaN(dataInterpretada.getTime()) && dataInterpretada.toISOString().slice(0, 10) === dia;
 }

@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import * as clienteService from "../services/clienteService.js";
-import { lerIdDoParametro } from "../lib/lerIdDoParametro.js";
+import { lerIdDoParametro } from "../utilitarios/lerIdDoParametro.js";
 
 export async function listarClientes(req: Request, res: Response): Promise<void> {
   res.json(await clienteService.listarClientes());

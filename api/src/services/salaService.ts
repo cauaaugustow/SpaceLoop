@@ -2,9 +2,9 @@ import { disponibilidadeSchema, type DadosDeDisponibilidade, type DadosDeSala } 
 import * as salaRepository from "../repositories/salaRepository.js";
 import type { SalaSelecionada } from "../repositories/salaRepository.js";
 import { buscarBlocoPorId } from "../repositories/blocoRepository.js";
-import { ErroDeDominio } from "../error/erroDeDominio.js";
-import { lancarErroTraduzidoDoPrisma } from "../error/lancarErroTraduzidoDoPrisma.js";
-import { converterDiaEmData } from "../lib/converterDiaEmData.js";
+import { ErroDeDominio } from "../erros/erroDeDominio.js";
+import { lancarErroTraduzidoDoPrisma } from "../erros/lancarErroTraduzidoDoPrisma.js";
+import { converterDiaEmData } from "../utilitarios/converterDiaEmData.js";
 
 export type FiltrosDeConsultaDeSalas = { disponivel?: unknown; dia?: unknown; turno?: unknown };
 
@@ -34,20 +34,20 @@ export async function buscarSalaPorId(id: number): Promise<SalaSelecionada> {
   return sala;
 }
 
-export async function criarSala(dados: DadosDeSala): Promise<SalaSelecionada> {
-  await exigirBlocoExistente(dados.idBloco);
+export async function criarSala(dadosDaSala: DadosDeSala): Promise<SalaSelecionada> {
+  await exigirBlocoExistente(dadosDaSala.idBloco);
   try {
-    return await salaRepository.criarSala(montarDadosDaSala(dados));
+    return await salaRepository.criarSala(montarDadosDaSala(dadosDaSala));
   } catch (erro: unknown) {
     lancarErroTraduzidoDoPrisma(erro, { P2003: erroDeBlocoInexistente() });
   }
 }
 
-export async function atualizarSala(id: number, dados: DadosDeSala): Promise<SalaSelecionada> {
+export async function atualizarSala(id: number, dadosDaSala: DadosDeSala): Promise<SalaSelecionada> {
   await buscarSalaPorId(id);
-  await exigirBlocoExistente(dados.idBloco);
+  await exigirBlocoExistente(dadosDaSala.idBloco);
   try {
-    return await salaRepository.atualizarSala(id, montarDadosDaSala(dados));
+    return await salaRepository.atualizarSala(id, montarDadosDaSala(dadosDaSala));
   } catch (erro: unknown) {
     lancarErroTraduzidoDoPrisma(erro, { P2003: erroDeBlocoInexistente(), P2025: erroDeSalaInexistente() });
   }

@@ -1,27 +1,33 @@
 import type { NextFunction, Request, Response } from "express";
 import { ZodError } from "zod";
 
-export type ErroDeCampo = { campo: string; message: string };
+export type ErroDeCampo = { campo: string; mensagem: string };
+
+export type RespostaDeErro = { mensagem: string; erros?: ErroDeCampo[] | undefined };
 
 type ErroDaAplicacao = Error & { statusCode?: number; campo?: string; type?: string };
 
-function listarErrosPorCampo(erro: ZodError): ErroDeCampo[] {
+function listarErrosPorCampo(erroDeValidacao: ZodError): ErroDeCampo[] {
   const mensagensPorCampo: Map<string, string> = new Map();
-  for (const problema of erro.issues) {
+  for (const problema of erroDeValidacao.issues) {
     const campo: string = problema.path.join(".") || "corpo";
     if (!mensagensPorCampo.has(campo)) mensagensPorCampo.set(campo, problema.message);
   }
-  return [...mensagensPorCampo].map(([campo, message]: [string, string]): ErroDeCampo => ({ campo, message }));
+  return [...mensagensPorCampo].map(([campo, mensagem]: [string, string]): ErroDeCampo => ({ campo, mensagem }));
+}
+
+function responderComErro(res: Response, statusCode: number, resposta: RespostaDeErro): void {
+  res.status(statusCode).json(resposta);
 }
 
 export function tratarErros(erro: ErroDaAplicacao, req: Request, res: Response, next: NextFunction): void {
   if (erro instanceof ZodError) {
-    res.status(400).json({ message: "Dados inválidos", errors: listarErrosPorCampo(erro) });
+    responderComErro(res, 400, { mensagem: "Dados inválidos", erros: listarErrosPorCampo(erro) });
     return;
   }
 
   if (erro.type === "entity.parse.failed") {
-    res.status(400).json({ message: "JSON inválido" });
+    responderComErro(res, 400, { mensagem: "JSON inválido" });
     return;
   }
 
@@ -29,7 +35,7 @@ export function tratarErros(erro: ErroDaAplicacao, req: Request, res: Response, 
   const isErroInterno: boolean = statusCode >= 500;
   if (isErroInterno) console.error(erro);
 
-  const message: string = isErroInterno ? "Erro interno do servidor" : erro.message;
-  const errors: ErroDeCampo[] | undefined = erro.campo ? [{ campo: erro.campo, message }] : undefined;
-  res.status(statusCode).json({ message, errors });
+  const mensagem: string = isErroInterno ? "Erro interno do servidor" : erro.message;
+  const erros: ErroDeCampo[] | undefined = erro.campo ? [{ campo: erro.campo, mensagem }] : undefined;
+  responderComErro(res, statusCode, { mensagem, erros });
 }

@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import * as salaService from "../services/salaService.js";
-import { lerIdDoParametro } from "../lib/lerIdDoParametro.js";
+import { lerIdDoParametro } from "../utilitarios/lerIdDoParametro.js";
 
 export async function listarSalas(req: Request, res: Response): Promise<void> {
   res.json(await salaService.listarSalas(req.query));

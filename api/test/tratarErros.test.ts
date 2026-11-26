@@ -24,12 +24,12 @@ test("JSON malformado vira 400 em português e erro inesperado vira 500 registra
   try {
     const respostaDeJsonInvalido: globalThis.Response = await enviarCorpo('{"email":');
     assert.equal(respostaDeJsonInvalido.status, 400);
-    assert.deepEqual(await respostaDeJsonInvalido.json(), { message: "JSON inválido" });
+    assert.deepEqual(await respostaDeJsonInvalido.json(), { mensagem: "JSON inválido" });
     assert.equal(registrarErroSpy.mock.callCount(), 0);
 
     const respostaDeErroInterno: globalThis.Response = await enviarCorpo("{}");
     assert.equal(respostaDeErroInterno.status, 500);
-    assert.deepEqual(await respostaDeErroInterno.json(), { message: "Erro interno do servidor" });
+    assert.deepEqual(await respostaDeErroInterno.json(), { mensagem: "Erro interno do servidor" });
     assert.equal(registrarErroSpy.mock.callCount(), 1);
   } finally {
     await new Promise<void>((resolve) => servidor.close(() => resolve()));

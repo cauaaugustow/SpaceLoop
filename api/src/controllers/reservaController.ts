@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import * as reservaService from "../services/reservaService.js";
-import { lerIdDoParametro } from "../lib/lerIdDoParametro.js";
+import { lerIdDoParametro } from "../utilitarios/lerIdDoParametro.js";
 
 export async function listarReservas(req: Request, res: Response): Promise<void> {
   res.json(await reservaService.listarReservas());

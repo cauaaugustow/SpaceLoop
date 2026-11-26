@@ -1,8 +1,8 @@
 import type { DadosDeBloco } from "shared";
 import * as blocoRepository from "../repositories/blocoRepository.js";
 import type { BlocoSelecionado } from "../repositories/blocoRepository.js";
-import { ErroDeDominio } from "../error/erroDeDominio.js";
-import { lancarErroTraduzidoDoPrisma } from "../error/lancarErroTraduzidoDoPrisma.js";
+import { ErroDeDominio } from "../erros/erroDeDominio.js";
+import { lancarErroTraduzidoDoPrisma } from "../erros/lancarErroTraduzidoDoPrisma.js";
 
 const erroDeBlocoInexistente = (): ErroDeDominio => new ErroDeDominio("Bloco não encontrado", 404);
 const erroDeNomeRepetido = (): ErroDeDominio => new ErroDeDominio("Já existe um bloco com este nome", 409, "nome");

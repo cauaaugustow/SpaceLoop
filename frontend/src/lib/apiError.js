@@ -1,4 +1,4 @@
 export function apiErrorMessage(error) {
   const response = error.response?.data
-  return response?.errors?.[0]?.message || response?.message || 'Não foi possível conectar. Confira sua conexão e tente novamente.'
+  return response?.erros?.[0]?.mensagem || response?.mensagem || 'Não foi possível conectar. Confira sua conexão e tente novamente.'
 }

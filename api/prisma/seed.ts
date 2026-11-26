@@ -1,5 +1,5 @@
 import prisma from "../src/config/prisma.js";
-import { hashearSenha } from "../src/services/senhaService.js";
+import { gerarHashDaSenha } from "../src/services/senhaService.js";
 import type { Bloco, Cliente, Reserva, Sala } from "../src/generated/prisma/client.js";
 
 type BlocoDeExemplo = { nome: string; descricao: string };
@@ -50,7 +50,7 @@ function obterIdObrigatorio(idsPorChave: Map<string, number>, chave: string): nu
 }
 
 async function salvarUsuarioDoProfessor(): Promise<void> {
-  const senhaHash: string = await hashearSenha(senhaDoProfessor);
+  const senhaHash: string = await gerarHashDaSenha(senhaDoProfessor);
   await prisma.usuario.upsert({
     where: { email: emailDoProfessor },
     update: { senhaHash },

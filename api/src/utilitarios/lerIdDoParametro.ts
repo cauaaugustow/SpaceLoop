@@ -1,6 +1,6 @@
 import type { Request } from "express";
 import { MAIOR_ID_DO_BANCO } from "shared";
-import { ErroDeDominio } from "../error/erroDeDominio.js";
+import { ErroDeDominio } from "../erros/erroDeDominio.js";
 
 export function lerIdDoParametro(req: Request): number {
   const id: number = Number(req.params.id);

@@ -1,11 +1,11 @@
-import { ErroDeDominio } from "../error/erroDeDominio.js";
-import { buscarUserPorAuth, type UsuarioParaAutenticar } from "../repositories/authRepository.js";
+import { ErroDeDominio } from "../erros/erroDeDominio.js";
+import { buscarUsuarioParaAutenticar, type UsuarioParaAutenticar } from "../repositories/autenticacaoRepository.js";
 import { compararSenha } from "./senhaService.js";
 
-export type UsuarioLogado = Omit<UsuarioParaAutenticar, "senhaHash">;
+export type UsuarioAutenticado = Omit<UsuarioParaAutenticar, "senhaHash">;
 
-export async function authUsuario(email: string, senha: string): Promise<UsuarioLogado> {
-  const usuario: UsuarioParaAutenticar | null = await buscarUserPorAuth(email);
+export async function autenticarUsuario(email: string, senha: string): Promise<UsuarioAutenticado> {
+  const usuario: UsuarioParaAutenticar | null = await buscarUsuarioParaAutenticar(email);
 
   if (!usuario) {
     throw new ErroDeDominio("Email ou senha não encontrados", 401);

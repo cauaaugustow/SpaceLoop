@@ -1,7 +1,7 @@
 import type { Prisma } from "../generated/prisma/client.js";
 import prisma from "../config/prisma.js";
 
-export const selectSala = {
+export const camposDaSala = {
   id: true,
   nome: true,
   capacidade: true,
@@ -13,7 +13,7 @@ export const selectSala = {
   atualizadoEm: true,
 } satisfies Prisma.SalaSelect;
 
-export type SalaSelecionada = Prisma.SalaGetPayload<{ select: typeof selectSala }>;
+export type SalaSelecionada = Prisma.SalaGetPayload<{ select: typeof camposDaSala }>;
 
 export type FiltroDeDisponibilidade = { dia: Date; turno: string };
 
@@ -22,19 +22,19 @@ export async function listarSalas(filtro?: FiltroDeDisponibilidade): Promise<Sal
     ? { reservas: { none: { dia: filtro.dia, turno: filtro.turno } } }
     : {};
 
-  return prisma.sala.findMany({ where, select: selectSala, orderBy: { nome: "asc" } });
+  return prisma.sala.findMany({ where, select: camposDaSala, orderBy: { nome: "asc" } });
 }
 
 export async function buscarSalaPorId(id: number): Promise<SalaSelecionada | null> {
-  return prisma.sala.findUnique({ where: { id }, select: selectSala });
+  return prisma.sala.findUnique({ where: { id }, select: camposDaSala });
 }
 
-export async function criarSala(dados: Prisma.SalaUncheckedCreateInput): Promise<SalaSelecionada> {
-  return prisma.sala.create({ data: dados, select: selectSala });
+export async function criarSala(dadosDaSala: Prisma.SalaUncheckedCreateInput): Promise<SalaSelecionada> {
+  return prisma.sala.create({ data: dadosDaSala, select: camposDaSala });
 }
 
-export async function atualizarSala(id: number, dados: Prisma.SalaUncheckedUpdateInput): Promise<SalaSelecionada> {
-  return prisma.sala.update({ where: { id }, data: dados, select: selectSala });
+export async function atualizarSala(id: number, dadosDaSala: Prisma.SalaUncheckedUpdateInput): Promise<SalaSelecionada> {
+  return prisma.sala.update({ where: { id }, data: dadosDaSala, select: camposDaSala });
 }
 
 export async function removerSala(id: number): Promise<void> {

@@ -3,14 +3,14 @@ import type { ZodSafeParseResult, ZodType } from "zod";
 
 export function validarBody(schema: ZodType): RequestHandler {
   return (req: Request, res: Response, next: NextFunction): void => {
-    const resultado: ZodSafeParseResult<unknown> = schema.safeParse(req.body ?? {});
+    const resultadoDaValidacao: ZodSafeParseResult<unknown> = schema.safeParse(req.body ?? {});
 
-    if (!resultado.success) {
-      next(resultado.error);
+    if (!resultadoDaValidacao.success) {
+      next(resultadoDaValidacao.error);
       return;
     }
 
-    req.body = resultado.data;
+    req.body = resultadoDaValidacao.data;
     next();
   };
 }

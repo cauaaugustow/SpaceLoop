@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { clienteSchema } from "shared";
-import { authValidate } from "../middlewares/authValidate.js";
+import { autenticarRequisicao } from "../middlewares/autenticarRequisicao.js";
 import { validarBody } from "../middlewares/validarSchema.js";
 import {
   atualizarCliente,
@@ -10,10 +10,10 @@ import {
   removerCliente,
 } from "../controllers/clienteController.js";
 
-export const clienteRoutes: Router = Router();
+export const rotasDeClientes: Router = Router();
 
-clienteRoutes.get("/clientes", authValidate, listarClientes);
-clienteRoutes.get("/clientes/:id", authValidate, buscarCliente);
-clienteRoutes.post("/clientes", authValidate, validarBody(clienteSchema), criarCliente);
-clienteRoutes.put("/clientes/:id", authValidate, validarBody(clienteSchema), atualizarCliente);
-clienteRoutes.delete("/clientes/:id", authValidate, removerCliente);
+rotasDeClientes.get("/clientes", autenticarRequisicao, listarClientes);
+rotasDeClientes.get("/clientes/:id", autenticarRequisicao, buscarCliente);
+rotasDeClientes.post("/clientes", autenticarRequisicao, validarBody(clienteSchema), criarCliente);
+rotasDeClientes.put("/clientes/:id", autenticarRequisicao, validarBody(clienteSchema), atualizarCliente);
+rotasDeClientes.delete("/clientes/:id", autenticarRequisicao, removerCliente);

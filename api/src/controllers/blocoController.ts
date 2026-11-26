@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import * as blocoService from "../services/blocoService.js";
-import { lerIdDoParametro } from "../lib/lerIdDoParametro.js";
+import { lerIdDoParametro } from "../utilitarios/lerIdDoParametro.js";
 
 export async function listarBlocos(req: Request, res: Response): Promise<void> {
   res.json(await blocoService.listarBlocos());

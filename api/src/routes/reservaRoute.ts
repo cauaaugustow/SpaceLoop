@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { reservaSchema } from "shared";
-import { authValidate } from "../middlewares/authValidate.js";
+import { autenticarRequisicao } from "../middlewares/autenticarRequisicao.js";
 import { validarBody } from "../middlewares/validarSchema.js";
 import {
   atualizarReserva,
@@ -10,10 +10,10 @@ import {
   removerReserva,
 } from "../controllers/reservaController.js";
 
-export const reservaRoutes: Router = Router();
+export const rotasDeReservas: Router = Router();
 
-reservaRoutes.get("/reservas", authValidate, listarReservas);
-reservaRoutes.get("/reservas/:id", authValidate, buscarReserva);
-reservaRoutes.post("/reservas", authValidate, validarBody(reservaSchema), criarReserva);
-reservaRoutes.put("/reservas/:id", authValidate, validarBody(reservaSchema), atualizarReserva);
-reservaRoutes.delete("/reservas/:id", authValidate, removerReserva);
+rotasDeReservas.get("/reservas", autenticarRequisicao, listarReservas);
+rotasDeReservas.get("/reservas/:id", autenticarRequisicao, buscarReserva);
+rotasDeReservas.post("/reservas", autenticarRequisicao, validarBody(reservaSchema), criarReserva);
+rotasDeReservas.put("/reservas/:id", autenticarRequisicao, validarBody(reservaSchema), atualizarReserva);
+rotasDeReservas.delete("/reservas/:id", autenticarRequisicao, removerReserva);

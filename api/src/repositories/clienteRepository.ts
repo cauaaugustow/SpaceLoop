@@ -1,7 +1,7 @@
 import type { Prisma } from "../generated/prisma/client.js";
 import prisma from "../config/prisma.js";
 
-export const selectCliente = {
+export const camposDoCliente = {
   id: true,
   nome: true,
   cpf: true,
@@ -11,30 +11,30 @@ export const selectCliente = {
   atualizadoEm: true,
 } satisfies Prisma.ClienteSelect;
 
-export type ClienteSelecionado = Prisma.ClienteGetPayload<{ select: typeof selectCliente }>;
+export type ClienteSelecionado = Prisma.ClienteGetPayload<{ select: typeof camposDoCliente }>;
 
 export async function listarClientes(): Promise<ClienteSelecionado[]> {
-  return prisma.cliente.findMany({ select: selectCliente, orderBy: { nome: "asc" } });
+  return prisma.cliente.findMany({ select: camposDoCliente, orderBy: { nome: "asc" } });
 }
 
 export async function buscarClientePorId(id: number): Promise<ClienteSelecionado | null> {
-  return prisma.cliente.findUnique({ where: { id }, select: selectCliente });
+  return prisma.cliente.findUnique({ where: { id }, select: camposDoCliente });
 }
 
 export async function buscarClientePorCpf(cpf: string): Promise<ClienteSelecionado | null> {
-  return prisma.cliente.findUnique({ where: { cpf }, select: selectCliente });
+  return prisma.cliente.findUnique({ where: { cpf }, select: camposDoCliente });
 }
 
 export async function buscarClientePorEmail(email: string): Promise<ClienteSelecionado | null> {
-  return prisma.cliente.findUnique({ where: { email }, select: selectCliente });
+  return prisma.cliente.findUnique({ where: { email }, select: camposDoCliente });
 }
 
-export async function criarCliente(dados: Prisma.ClienteCreateInput): Promise<ClienteSelecionado> {
-  return prisma.cliente.create({ data: dados, select: selectCliente });
+export async function criarCliente(dadosDoCliente: Prisma.ClienteCreateInput): Promise<ClienteSelecionado> {
+  return prisma.cliente.create({ data: dadosDoCliente, select: camposDoCliente });
 }
 
-export async function atualizarCliente(id: number, dados: Prisma.ClienteUpdateInput): Promise<ClienteSelecionado> {
-  return prisma.cliente.update({ where: { id }, data: dados, select: selectCliente });
+export async function atualizarCliente(id: number, dadosDoCliente: Prisma.ClienteUpdateInput): Promise<ClienteSelecionado> {
+  return prisma.cliente.update({ where: { id }, data: dadosDoCliente, select: camposDoCliente });
 }
 
 export async function removerCliente(id: number): Promise<void> {

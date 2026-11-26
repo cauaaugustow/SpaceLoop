@@ -1,7 +1,7 @@
 import type { Prisma } from "../generated/prisma/client.js";
 import prisma from "../config/prisma.js";
 
-export const selectUserAuth = {
+export const camposParaAutenticar = {
   id: true,
   nome: true,
   email: true,
@@ -9,11 +9,11 @@ export const selectUserAuth = {
   criadoEm: true,
 } satisfies Prisma.UsuarioSelect;
 
-export type UsuarioParaAutenticar = Prisma.UsuarioGetPayload<{ select: typeof selectUserAuth }>;
+export type UsuarioParaAutenticar = Prisma.UsuarioGetPayload<{ select: typeof camposParaAutenticar }>;
 
-export async function buscarUserPorAuth(email: string): Promise<UsuarioParaAutenticar | null> {
+export async function buscarUsuarioParaAutenticar(email: string): Promise<UsuarioParaAutenticar | null> {
   return prisma.usuario.findUnique({
     where: { email },
-    select: selectUserAuth,
+    select: camposParaAutenticar,
   });
 }

@@ -1,13 +1,13 @@
 import { Router } from "express";
 import { salaSchema } from "shared";
-import { authValidate } from "../middlewares/authValidate.js";
+import { autenticarRequisicao } from "../middlewares/autenticarRequisicao.js";
 import { validarBody } from "../middlewares/validarSchema.js";
 import { atualizarSala, buscarSala, criarSala, listarSalas, removerSala } from "../controllers/salaController.js";
 
-export const salaRoutes: Router = Router();
+export const rotasDeSalas: Router = Router();
 
-salaRoutes.get("/salas", authValidate, listarSalas);
-salaRoutes.get("/salas/:id", authValidate, buscarSala);
-salaRoutes.post("/salas", authValidate, validarBody(salaSchema), criarSala);
-salaRoutes.put("/salas/:id", authValidate, validarBody(salaSchema), atualizarSala);
-salaRoutes.delete("/salas/:id", authValidate, removerSala);
+rotasDeSalas.get("/salas", autenticarRequisicao, listarSalas);
+rotasDeSalas.get("/salas/:id", autenticarRequisicao, buscarSala);
+rotasDeSalas.post("/salas", autenticarRequisicao, validarBody(salaSchema), criarSala);
+rotasDeSalas.put("/salas/:id", autenticarRequisicao, validarBody(salaSchema), atualizarSala);
+rotasDeSalas.delete("/salas/:id", autenticarRequisicao, removerSala);
