@@ -11,13 +11,13 @@ import { buscarBlocoPorId } from "../repositories/blocoRepository.js";
 import type { Prisma } from "../generated/prisma/client.js";
 import type { RespostaDeRemocao } from "./respostaDeRemocao.js";
 import { ErroDeDominio } from "../error/erroDeDominio.js";
+import { converterDiaEmData } from "../lib/converterDiaEmData.js";
 import {
-  criarSalaSchema,
-  updateSalaSchema,
-  type DadosDeNovaSala,
+  disponibilidadeSchema,
   type DadosDeAtualizacaoDeSala,
-} from "../schema/salaSchema.js";
-import { disponibilidadeSchema, type DadosDeDisponibilidade } from "../schema/reservaSchema.js";
+  type DadosDeDisponibilidade,
+  type DadosDeNovaSala,
+} from "shared";
 
 export type FiltrosDeConsultaDeSalas = { disponivel?: unknown; dia?: unknown; turno?: unknown };
 
@@ -27,8 +27,7 @@ async function exigirBlocoExistente(idBloco: number): Promise<void> {
   }
 }
 
-export async function criarSala(dados: unknown): Promise<SalaSelecionada> {
-  const { nome, capacidade, descricao, precoLocacao, idBloco }: DadosDeNovaSala = criarSalaSchema.parse(dados);
+export async function criarSala({ nome, capacidade, descricao, precoLocacao, idBloco }: DadosDeNovaSala): Promise<SalaSelecionada> {
   await exigirBlocoExistente(idBloco);
   return criarSalaRepository({
     nome,
@@ -46,12 +45,13 @@ export async function getAllSalas(filtros: FiltrosDeConsultaDeSalas = {}): Promi
     return listarSalasRepository();
   }
 
-  const { dia: inicio, turno: turnoNormalizado }: DadosDeDisponibilidade = disponibilidadeSchema.parse({ dia, turno });
+  const disponibilidade: DadosDeDisponibilidade = disponibilidadeSchema.parse({ dia, turno });
+  const inicio: Date = converterDiaEmData(disponibilidade.dia);
 
   const fim: Date = new Date(inicio);
   fim.setUTCDate(fim.getUTCDate() + 1);
 
-  return listarSalasRepository({ inicio, fim, turno: turnoNormalizado });
+  return listarSalasRepository({ inicio, fim, turno: disponibilidade.turno });
 }
 
 export async function buscarSalaPorId(id: number): Promise<SalaSelecionada> {
@@ -61,8 +61,7 @@ export async function buscarSalaPorId(id: number): Promise<SalaSelecionada> {
   return sala;
 }
 
-export async function atualizarSala(id: number, dados: unknown): Promise<SalaSelecionada> {
-  const { precoLocacao, ...demaisDados }: DadosDeAtualizacaoDeSala = updateSalaSchema.parse(dados);
+export async function atualizarSala(id: number, { precoLocacao, ...demaisDados }: DadosDeAtualizacaoDeSala): Promise<SalaSelecionada> {
   const dadosAtualizados: Prisma.SalaUncheckedUpdateInput = { ...demaisDados };
   await buscarSalaPorId(id);
   if (demaisDados.idBloco !== undefined) {

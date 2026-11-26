@@ -11,13 +11,8 @@ import { buscarSalaPorId } from "./salaService.js";
 import type { RespostaDeRemocao } from "./respostaDeRemocao.js";
 import { ErroDeDominio } from "../error/erroDeDominio.js";
 import { codigoDoErroPrisma } from "../error/codigoDoErroPrisma.js";
-import {
-  criarReservaSchema,
-  atualizarReservaSchema,
-  type DadosDeNovaReserva,
-  type DadosDeAtualizacaoDeReserva,
-} from "../schema/reservaSchema.js";
-import { hojeNoFusoDaAplicacao } from "../lib/dataReserva.js";
+import { converterDiaEmData } from "../lib/converterDiaEmData.js";
+import { hojeNoFusoDaAplicacao, type DadosDeAtualizacaoDeReserva, type DadosDeNovaReserva } from "shared";
 
 async function exigirClienteExistente(idCliente: number): Promise<void> {
   if (!(await buscarClientePorId(idCliente))) {
@@ -25,14 +20,13 @@ async function exigirClienteExistente(idCliente: number): Promise<void> {
   }
 }
 
-export async function criarReserva(dados: unknown): Promise<ReservaSelecionada> {
-  const { idSala, idCliente, dia, turno }: DadosDeNovaReserva = criarReservaSchema.parse(dados);
+export async function criarReserva({ idSala, idCliente, dia, turno }: DadosDeNovaReserva): Promise<ReservaSelecionada> {
 
   await exigirClienteExistente(idCliente);
   await buscarSalaPorId(idSala);
 
   try {
-    return await criarReservaRepository({ idCliente, idSala, dia, turno });
+    return await criarReservaRepository({ idCliente, idSala, dia: converterDiaEmData(dia), turno });
   } catch (erro: unknown) {
     if (codigoDoErroPrisma(erro) === "P2002") {
       throw new ErroDeDominio("Esta sala já possui uma reserva neste dia e turno", 409);
@@ -51,23 +45,23 @@ export async function buscarReservaPorId(id: number): Promise<ReservaSelecionada
   return reserva;
 }
 
-export async function atualizarReserva(id: number, dados: unknown): Promise<ReservaSelecionada> {
+export async function atualizarReserva(id: number, { dia, ...demaisDados }: DadosDeAtualizacaoDeReserva): Promise<ReservaSelecionada> {
   const reserva: ReservaSelecionada = await buscarReservaPorId(id);
 
-  const dadosValidados: DadosDeAtualizacaoDeReserva = atualizarReservaSchema.parse(dados);
-  const diaFinal: Date = dadosValidados.dia ?? reserva.dia;
+  const diaInformado: Date | undefined = dia === undefined ? undefined : converterDiaEmData(dia);
+  const diaFinal: Date = diaInformado ?? reserva.dia;
   if (diaFinal.toISOString().slice(0, 10) < hojeNoFusoDaAplicacao()) {
     throw new ErroDeDominio("A data da reserva não pode estar no passado", 400);
   }
-  if (dadosValidados.idSala) {
-    await buscarSalaPorId(dadosValidados.idSala);
+  if (demaisDados.idSala) {
+    await buscarSalaPorId(demaisDados.idSala);
   }
-  if (dadosValidados.idCliente) {
-    await exigirClienteExistente(dadosValidados.idCliente);
+  if (demaisDados.idCliente) {
+    await exigirClienteExistente(demaisDados.idCliente);
   }
 
   try {
-    return await atualizarReservaRepository(id, dadosValidados);
+    return await atualizarReservaRepository(id, { ...demaisDados, dia: diaInformado });
   } catch (erro: unknown) {
     if (codigoDoErroPrisma(erro) === "P2002") {
       throw new ErroDeDominio("Esta sala já possui uma reserva neste dia e turno", 409);

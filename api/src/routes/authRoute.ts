@@ -1,8 +1,8 @@
 import { Router } from "express";
 import { autenticarUsuario } from "../controllers/authController.js";
-import { validate } from "../middlewares/validate.js";
-import { authUsuarioSchema } from "../schema/authSchema.js";
+import { validarBody } from "../middlewares/validarSchema.js";
+import { loginSchema } from "shared";
 
 export const authRoutes: Router = Router();
 
-authRoutes.post("/login", validate(authUsuarioSchema), autenticarUsuario);
+authRoutes.post("/login", validarBody(loginSchema), autenticarUsuario);

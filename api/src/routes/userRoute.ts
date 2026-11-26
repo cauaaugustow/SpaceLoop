@@ -1,8 +1,8 @@
 import { Router } from "express";
 import { cadastrarUsuario } from "../controllers/userController.js";
-import { validate } from "../middlewares/validate.js";
-import { criarUsuarioSchema } from "../schema/userSchema.js";
+import { validarBody } from "../middlewares/validarSchema.js";
+import { criarUsuarioSchema } from "shared";
 
 export const userRoutes: Router = Router();
 
-userRoutes.post("/usuario", validate(criarUsuarioSchema), cadastrarUsuario);
+userRoutes.post("/usuario", validarBody(criarUsuarioSchema), cadastrarUsuario);

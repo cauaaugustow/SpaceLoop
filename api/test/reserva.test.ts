@@ -5,9 +5,10 @@ import type { Server } from "node:http";
 import type { AddressInfo } from "node:net";
 import test from "node:test";
 import bcrypt from "bcryptjs";
-import express, { type Express, type NextFunction, type Request, type Response } from "express";
+import express, { type Express } from "express";
 import jwt from "jsonwebtoken";
 import { criarBancoTemporario, type BancoTemporario } from "./bancoTemporario.js";
+import { tratarErros, type ErroDeCampo } from "../src/middlewares/tratarErros.js";
 import type { Bloco, Cliente, PrismaClient, Reserva, Sala, Usuario } from "../src/generated/prisma/client.js";
 
 type Resposta = { status: number; dados: any };
@@ -50,12 +51,7 @@ test("usuário logado gerencia salas e reservas com as regras de conflito e data
     app.use(userRoutes);
     app.use(salaRoutes);
     app.use(reservaRoutes);
-    app.use((erro: Error & { statusCode?: number; issues?: unknown }, req: Request, res: Response, next: NextFunction) => {
-      if (erro.name === "ZodError") {
-        return res.status(400).json({ message: "Dados inválidos", errors: erro.issues });
-      }
-      return res.status(erro.statusCode || 500).json({ message: erro.message });
-    });
+    app.use(tratarErros);
     servidor = app.listen(0, "127.0.0.1");
     await once(servidor, "listening");
 
@@ -74,6 +70,24 @@ test("usuário logado gerencia salas e reservas com as regras de conflito e data
     };
 
     assert.equal((await requisitar("/reservas")).status, 401);
+
+    const listarCamposComErro = (resposta: Resposta): string[] => resposta.dados.errors.map((erro: ErroDeCampo) => erro.campo).sort();
+
+    const cadastroVazio: Resposta = await requisitar("/usuario", "POST", null, {});
+    assert.equal(cadastroVazio.status, 400);
+    assert.deepEqual(listarCamposComErro(cadastroVazio), ["email", "nome", "senha"]);
+    assert.deepEqual(listarCamposComErro(await requisitar("/login", "POST", null, { email: "invalido", senha: "curta" })), ["email", "senha"]);
+
+    const salaVazia: Resposta = await requisitar("/salas", "POST", usuario.id, {});
+    assert.equal(salaVazia.status, 400);
+    assert.deepEqual(listarCamposComErro(salaVazia), ["capacidade", "idBloco", "nome", "precoLocacao"]);
+    assert.deepEqual(listarCamposComErro(await requisitar("/salas", "POST", usuario.id, { nome: "Sem preço", capacidade: "4", precoLocacao: null, idBloco: bloco.id })), ["precoLocacao"]);
+
+    const reservaVazia: Resposta = await requisitar("/reservas", "POST", usuario.id, {});
+    assert.deepEqual(listarCamposComErro(reservaVazia), ["dia", "idCliente", "idSala", "turno"]);
+    const reservaComDataInexistente: Resposta = await requisitar("/reservas", "POST", usuario.id, { idSala: sala.id, idCliente: cliente.id, dia: "2099-02-30", turno: "manha" });
+    assert.deepEqual(reservaComDataInexistente.dados.errors, [{ campo: "dia", message: "Informe uma data válida" }]);
+    assert.equal((await requisitar(`/salas/${sala.id}`, "PATCH", usuario.id, {})).status, 400);
 
     const cadastro: Resposta = await requisitar("/usuario", "POST", null, { nome: "Novo", email: "NOVO@teste.local", senha: "senha-forte-123" });
     assert.equal(cadastro.status, 201);

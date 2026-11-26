@@ -4,13 +4,11 @@ import {
   type UsuarioSelecionado,
 } from "../repositories/userRepository.js";
 import { hashearSenha } from "./senhaService.js";
-import { criarUsuarioSchema, type DadosDeNovoUsuario } from "../schema/userSchema.js";
+import type { DadosDeNovoUsuario } from "shared";
 import { ErroDeDominio } from "../error/erroDeDominio.js";
 import { codigoDoErroPrisma } from "../error/codigoDoErroPrisma.js";
 
-export async function criarUser(dados: unknown): Promise<UsuarioSelecionado> {
-  const { nome, email, senha }: DadosDeNovoUsuario = criarUsuarioSchema.parse(dados);
-
+export async function criarUser({ nome, email, senha }: DadosDeNovoUsuario): Promise<UsuarioSelecionado> {
   if (await buscarUserPorEmail(email)) throw new ErroDeDominio("E-mail já cadastrado", 409);
 
   try {
