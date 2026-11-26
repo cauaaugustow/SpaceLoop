@@ -9,7 +9,7 @@
     "build": "prisma generate && tsc",
     "start": "node dist/server.js",
     "typecheck": "tsc -p tsconfig.check.json",
-    "test": "tsx --test test/reserva.test.ts",
+    "test": "tsx --test test/api.test.ts",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate deploy",
     "db:seed": "prisma db seed"

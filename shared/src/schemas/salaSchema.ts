@@ -1,14 +1,7 @@
 import { z } from "zod";
-import {
-  hasAlgumCampo,
-  inteiroPositivo,
-  mensagemDeAtualizacaoVazia,
-  numeroNaoNegativo,
-  textoObrigatorio,
-  textoOpcional,
-} from "./campos.js";
+import { inteiroPositivo, numeroNaoNegativo, textoObrigatorio, textoOpcional } from "./campos.js";
 
-export const criarSalaSchema = z.object({
+export const salaSchema = z.object({
   nome: textoObrigatorio("O nome da sala deve ter pelo menos 2 caracteres", 2),
   capacidade: inteiroPositivo("A capacidade da sala deve ser um número inteiro maior que zero"),
   descricao: textoOpcional("A descrição precisa ser um texto"),
@@ -16,7 +9,4 @@ export const criarSalaSchema = z.object({
   idBloco: inteiroPositivo("Selecione o bloco"),
 });
 
-export const atualizarSalaSchema = criarSalaSchema.partial().refine(hasAlgumCampo, mensagemDeAtualizacaoVazia);
-
-export type DadosDeNovaSala = z.infer<typeof criarSalaSchema>;
-export type DadosDeAtualizacaoDeSala = z.infer<typeof atualizarSalaSchema>;
+export type DadosDeSala = z.infer<typeof salaSchema>;
