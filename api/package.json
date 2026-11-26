@@ -11,7 +11,8 @@
     "typecheck": "tsc -p tsconfig.check.json",
     "test": "tsx --test test/reserva.test.ts",
     "db:generate": "prisma generate",
-    "db:migrate": "prisma migrate deploy"
+    "db:migrate": "prisma migrate deploy",
+    "db:seed": "prisma db seed"
   },
   "repository": {
     "type": "git",
