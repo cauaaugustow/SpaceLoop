@@ -1,6 +1,6 @@
 services:
   banco:
-    image: postgres:17
+    image: postgres:19
     environment:
       POSTGRES_USER: spaceloop
       POSTGRES_PASSWORD: spaceloop
@@ -8,7 +8,7 @@ services:
     ports:
       - "5434:5432"
     volumes:
-      - dados_do_postgres:/var/lib/postgresql/data
+      - dados_do_postgres:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U spaceloop -d spaceloop_db"]
       interval: 5s
