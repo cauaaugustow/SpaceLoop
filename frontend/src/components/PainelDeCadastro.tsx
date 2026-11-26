@@ -1,5 +1,6 @@
-import { useState, type JSX, type ReactNode } from "react";
+import { useState, type JSX, type ReactNode, type ChangeEvent } from "react";
 import { Pencil, Plus, Search, Trash2 } from "lucide-react";
+import type { ListaDaApi } from "../hooks/useListaDaApi";
 import type { TelaDeCadastro } from "../hooks/useTelaDeCadastro";
 import type { Registro } from "../types/registros";
 import { normalizarTextoDeBusca } from "../utilitarios/formatacao";
@@ -30,7 +31,7 @@ export function PainelDeCadastro<RegistroDaTela extends Registro, Formulario>({
   children,
 }: PropriedadesDoPainel<RegistroDaTela, Formulario>): JSX.Element {
   const [textoDaBusca, setTextoDaBusca] = useState<string>("");
-  const { itens, isCarregando, mensagemDeErro } = tela.lista;
+  const { itens, isCarregando, mensagemDeErro }: ListaDaApi<RegistroDaTela> = tela.lista;
 
   const registrosEncontrados: RegistroDaTela[] = itens.filter((registro: RegistroDaTela) =>
     normalizarTextoDeBusca(colunas.map((coluna: Coluna<RegistroDaTela>) => coluna.obterTexto(registro)).join(" "))
@@ -54,7 +55,7 @@ export function PainelDeCadastro<RegistroDaTela extends Registro, Formulario>({
           aria-label={`Buscar em ${titulo.toLowerCase()}`}
           placeholder="Buscar por texto"
           value={textoDaBusca}
-          onChange={(evento) => setTextoDaBusca(evento.target.value)}
+          onChange={(evento: ChangeEvent<HTMLInputElement>) => setTextoDaBusca(evento.target.value)}
         />
       </label>
 

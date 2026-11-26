@@ -1,4 +1,4 @@
-import { useEffect, useRef, type JSX, type ReactNode } from "react";
+import { useEffect, useRef, type JSX, type ReactNode, type RefObject } from "react";
 import { X } from "lucide-react";
 
 type PropriedadesDoModal = {
@@ -8,7 +8,7 @@ type PropriedadesDoModal = {
 };
 
 export function Modal({ titulo, aoFechar, children }: PropriedadesDoModal): JSX.Element {
-  const referenciaDoDialogo = useRef<HTMLDialogElement>(null);
+  const referenciaDoDialogo: RefObject<HTMLDialogElement | null> = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
     const dialogo: HTMLDialogElement | null = referenciaDoDialogo.current;

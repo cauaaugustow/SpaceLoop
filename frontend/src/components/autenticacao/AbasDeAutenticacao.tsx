@@ -6,7 +6,9 @@ type PropriedadesDasAbas = {
   aoEscolherPagina: (pagina: PaginaDeAcesso) => void;
 };
 
-const abas: { pagina: PaginaDeAcesso; rotulo: string }[] = [
+type AbaDeAutenticacao = { pagina: PaginaDeAcesso; rotulo: string };
+
+const abas: AbaDeAutenticacao[] = [
   { pagina: "login", rotulo: "Entrar" },
   { pagina: "cadastro", rotulo: "Criar conta" },
 ];
@@ -14,7 +16,7 @@ const abas: { pagina: PaginaDeAcesso; rotulo: string }[] = [
 export function AbasDeAutenticacao({ paginaAtual, aoEscolherPagina }: PropriedadesDasAbas): JSX.Element {
   return (
     <nav className="auth-tabs" aria-label="Acesso à conta">
-      {abas.map(({ pagina, rotulo }) => (
+      {abas.map(({ pagina, rotulo }: AbaDeAutenticacao) => (
         <button
           key={pagina}
           type="button"

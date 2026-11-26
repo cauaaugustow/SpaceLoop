@@ -33,7 +33,7 @@ export function useListaDaApi<Item>(listar: () => Promise<Item[]>): ListaDaApi<I
     };
   }, [listar, numeroDaRecarga]);
 
-  const recarregar = useCallback((): void => setNumeroDaRecarga((numeroAtual: number) => numeroAtual + 1), []);
+  const recarregar: () => void = useCallback((): void => setNumeroDaRecarga((numeroAtual: number) => numeroAtual + 1), []);
 
   return { itens, isCarregando, mensagemDeErro, recarregar };
 }

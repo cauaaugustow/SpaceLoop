@@ -1,13 +1,15 @@
-import type { JSX } from "react";
+import type { JSX, ChangeEvent } from "react";
 import { TURNOS, hojeNoFusoDaAplicacao, reservaSchema, type DadosDeReserva, type Turno } from "shared";
 import { CampoDeFormulario } from "../components/CampoDeFormulario";
 import { CampoDeSelecao, type OpcaoDeSelecao } from "../components/CampoDeSelecao";
 import { PainelDeCadastro, type Coluna } from "../components/PainelDeCadastro";
-import { useListaDaApi } from "../hooks/useListaDaApi";
-import { useTelaDeCadastro } from "../hooks/useTelaDeCadastro";
+import { useListaDaApi, type ListaDaApi } from "../hooks/useListaDaApi";
+import { useTelaDeCadastro, type TelaDeCadastro } from "../hooks/useTelaDeCadastro";
 import { clienteService, reservaService, salaService } from "../services/recursosService";
 import type { Cliente, Reserva, Sala } from "../types/registros";
 import { formatarDia, rotulosDosTurnos } from "../utilitarios/formatacao";
+
+type RegistroComNome = { id: number; nome: string };
 
 type FormularioDeReserva = { dia: string; turno: string; idSala: string; idCliente: string };
 
@@ -26,20 +28,20 @@ function montarFormulario({ dia, turno, idSala, idCliente }: Reserva): Formulari
   return { dia: dia.slice(0, 10), turno, idSala: String(idSala), idCliente: String(idCliente) };
 }
 
-function montarOpcoesPorNome(registros: { id: number; nome: string }[]): OpcaoDeSelecao[] {
-  return registros.map((registro) => ({ valor: String(registro.id), rotulo: registro.nome }));
+function montarOpcoesPorNome(registros: RegistroComNome[]): OpcaoDeSelecao[] {
+  return registros.map((registro: RegistroComNome): OpcaoDeSelecao => ({ valor: String(registro.id), rotulo: registro.nome }));
 }
 
 export function PaginaDeReservas(): JSX.Element {
-  const tela = useTelaDeCadastro<Reserva, DadosDeReserva, FormularioDeReserva>({
+  const tela: TelaDeCadastro<Reserva, FormularioDeReserva> = useTelaDeCadastro<Reserva, DadosDeReserva, FormularioDeReserva>({
     servico: reservaService,
     schema: reservaSchema,
     formularioVazio,
     montarFormulario,
   });
-  const salas = useListaDaApi<Sala>(salaService.listar);
-  const clientes = useListaDaApi<Cliente>(clienteService.listar);
-  const { formulario, errosDoFormulario, preencherCampo } = tela;
+  const salas: ListaDaApi<Sala> = useListaDaApi<Sala>(salaService.listar);
+  const clientes: ListaDaApi<Cliente> = useListaDaApi<Cliente>(clienteService.listar);
+  const { formulario, errosDoFormulario, preencherCampo }: TelaDeCadastro<Reserva, FormularioDeReserva> = tela;
 
   return (
     <PainelDeCadastro
@@ -55,7 +57,7 @@ export function PaginaDeReservas(): JSX.Element {
         id="idSala"
         opcoes={montarOpcoesPorNome(salas.itens)}
         value={formulario.idSala}
-        onChange={(evento) => preencherCampo("idSala", evento.target.value)}
+        onChange={(evento: ChangeEvent<HTMLSelectElement>) => preencherCampo("idSala", evento.target.value)}
         mensagemDeErro={errosDoFormulario.errosPorCampo.idSala}
       />
       <CampoDeSelecao
@@ -63,7 +65,7 @@ export function PaginaDeReservas(): JSX.Element {
         id="idCliente"
         opcoes={montarOpcoesPorNome(clientes.itens)}
         value={formulario.idCliente}
-        onChange={(evento) => preencherCampo("idCliente", evento.target.value)}
+        onChange={(evento: ChangeEvent<HTMLSelectElement>) => preencherCampo("idCliente", evento.target.value)}
         mensagemDeErro={errosDoFormulario.errosPorCampo.idCliente}
       />
       <CampoDeFormulario
@@ -72,7 +74,7 @@ export function PaginaDeReservas(): JSX.Element {
         type="date"
         min={hojeNoFusoDaAplicacao()}
         value={formulario.dia}
-        onChange={(evento) => preencherCampo("dia", evento.target.value)}
+        onChange={(evento: ChangeEvent<HTMLInputElement>) => preencherCampo("dia", evento.target.value)}
         mensagemDeErro={errosDoFormulario.errosPorCampo.dia}
       />
       <CampoDeSelecao
@@ -80,7 +82,7 @@ export function PaginaDeReservas(): JSX.Element {
         id="turno"
         opcoes={opcoesDeTurno}
         value={formulario.turno}
-        onChange={(evento) => preencherCampo("turno", evento.target.value)}
+        onChange={(evento: ChangeEvent<HTMLSelectElement>) => preencherCampo("turno", evento.target.value)}
         mensagemDeErro={errosDoFormulario.errosPorCampo.turno}
       />
     </PainelDeCadastro>

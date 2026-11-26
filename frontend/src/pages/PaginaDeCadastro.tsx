@@ -1,6 +1,7 @@
 import { useState, type ChangeEvent, type FormEvent, type JSX } from "react";
+import type { ZodSafeParseResult } from "zod";
 import { ArrowRight, Mail } from "lucide-react";
-import { criarUsuarioSchema } from "shared";
+import { criarUsuarioSchema, type DadosDeNovoUsuario } from "shared";
 import { AbasDeAutenticacao } from "../components/autenticacao/AbasDeAutenticacao";
 import { LayoutDeAutenticacao } from "../components/autenticacao/LayoutDeAutenticacao";
 import { CampoDeFormulario } from "../components/CampoDeFormulario";
@@ -36,7 +37,7 @@ export function PaginaDeCadastro({ aoEscolherPagina, aoCadastrar }: Propriedades
 
   async function enviarCadastro(evento: FormEvent<HTMLFormElement>): Promise<void> {
     evento.preventDefault();
-    const validacao = criarUsuarioSchema.safeParse(formulario);
+    const validacao: ZodSafeParseResult<DadosDeNovoUsuario> = criarUsuarioSchema.safeParse(formulario);
     if (!validacao.success) {
       setErrosDoFormulario(mapearErrosDeValidacao(validacao.error));
       return;

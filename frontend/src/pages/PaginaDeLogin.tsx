@@ -1,6 +1,7 @@
 import { useState, type ChangeEvent, type FormEvent, type JSX } from "react";
+import type { ZodSafeParseResult } from "zod";
 import { ArrowRight, Mail } from "lucide-react";
-import { loginSchema } from "shared";
+import { loginSchema, type DadosDeLogin } from "shared";
 import { AbasDeAutenticacao } from "../components/autenticacao/AbasDeAutenticacao";
 import { LayoutDeAutenticacao } from "../components/autenticacao/LayoutDeAutenticacao";
 import { CampoDeFormulario } from "../components/CampoDeFormulario";
@@ -37,7 +38,7 @@ export function PaginaDeLogin({ emailInicial, avisoDeSucesso, aoEscolherPagina, 
 
   async function enviarLogin(evento: FormEvent<HTMLFormElement>): Promise<void> {
     evento.preventDefault();
-    const validacao = loginSchema.safeParse(formulario);
+    const validacao: ZodSafeParseResult<DadosDeLogin> = loginSchema.safeParse(formulario);
     if (!validacao.success) {
       setErrosDoFormulario(mapearErrosDeValidacao(validacao.error));
       return;

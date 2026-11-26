@@ -1,8 +1,8 @@
-import type { JSX } from "react";
+import type { JSX, ChangeEvent } from "react";
 import { blocoSchema, type DadosDeBloco } from "shared";
 import { CampoDeFormulario } from "../components/CampoDeFormulario";
 import { PainelDeCadastro, type Coluna } from "../components/PainelDeCadastro";
-import { useTelaDeCadastro } from "../hooks/useTelaDeCadastro";
+import { useTelaDeCadastro, type TelaDeCadastro } from "../hooks/useTelaDeCadastro";
 import { blocoService } from "../services/recursosService";
 import type { Bloco } from "../types/registros";
 
@@ -20,13 +20,13 @@ function montarFormulario({ nome, descricao }: Bloco): FormularioDeBloco {
 }
 
 export function PaginaDeBlocos(): JSX.Element {
-  const tela = useTelaDeCadastro<Bloco, DadosDeBloco, FormularioDeBloco>({
+  const tela: TelaDeCadastro<Bloco, FormularioDeBloco> = useTelaDeCadastro<Bloco, DadosDeBloco, FormularioDeBloco>({
     servico: blocoService,
     schema: blocoSchema,
     formularioVazio,
     montarFormulario,
   });
-  const { formulario, errosDoFormulario, preencherCampo } = tela;
+  const { formulario, errosDoFormulario, preencherCampo }: TelaDeCadastro<Bloco, FormularioDeBloco> = tela;
 
   return (
     <PainelDeCadastro
@@ -40,14 +40,14 @@ export function PaginaDeBlocos(): JSX.Element {
         rotulo="Nome"
         id="nome"
         value={formulario.nome}
-        onChange={(evento) => preencherCampo("nome", evento.target.value)}
+        onChange={(evento: ChangeEvent<HTMLInputElement>) => preencherCampo("nome", evento.target.value)}
         mensagemDeErro={errosDoFormulario.errosPorCampo.nome}
       />
       <CampoDeFormulario
         rotulo="Descrição (opcional)"
         id="descricao"
         value={formulario.descricao}
-        onChange={(evento) => preencherCampo("descricao", evento.target.value)}
+        onChange={(evento: ChangeEvent<HTMLInputElement>) => preencherCampo("descricao", evento.target.value)}
         mensagemDeErro={errosDoFormulario.errosPorCampo.descricao}
       />
     </PainelDeCadastro>

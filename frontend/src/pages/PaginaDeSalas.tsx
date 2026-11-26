@@ -1,10 +1,10 @@
-import type { JSX } from "react";
+import type { JSX, ChangeEvent } from "react";
 import { salaSchema, type DadosDeSala } from "shared";
 import { CampoDeFormulario } from "../components/CampoDeFormulario";
 import { CampoDeSelecao, type OpcaoDeSelecao } from "../components/CampoDeSelecao";
 import { PainelDeCadastro, type Coluna } from "../components/PainelDeCadastro";
-import { useListaDaApi } from "../hooks/useListaDaApi";
-import { useTelaDeCadastro } from "../hooks/useTelaDeCadastro";
+import { useListaDaApi, type ListaDaApi } from "../hooks/useListaDaApi";
+import { useTelaDeCadastro, type TelaDeCadastro } from "../hooks/useTelaDeCadastro";
 import { blocoService, salaService } from "../services/recursosService";
 import type { Bloco, Sala } from "../types/registros";
 import { formatarPreco } from "../utilitarios/formatacao";
@@ -38,15 +38,15 @@ function montarFormulario({ nome, capacidade, descricao, preco, idBloco }: Sala)
 }
 
 export function PaginaDeSalas(): JSX.Element {
-  const tela = useTelaDeCadastro<Sala, DadosDeSala, FormularioDeSala>({
+  const tela: TelaDeCadastro<Sala, FormularioDeSala> = useTelaDeCadastro<Sala, DadosDeSala, FormularioDeSala>({
     servico: salaService,
     schema: salaSchema,
     formularioVazio,
     montarFormulario,
   });
-  const blocos = useListaDaApi<Bloco>(blocoService.listar);
+  const blocos: ListaDaApi<Bloco> = useListaDaApi<Bloco>(blocoService.listar);
   const opcoesDeBloco: OpcaoDeSelecao[] = blocos.itens.map((bloco: Bloco) => ({ valor: String(bloco.id), rotulo: bloco.nome }));
-  const { formulario, errosDoFormulario, preencherCampo } = tela;
+  const { formulario, errosDoFormulario, preencherCampo }: TelaDeCadastro<Sala, FormularioDeSala> = tela;
 
   return (
     <PainelDeCadastro
@@ -61,7 +61,7 @@ export function PaginaDeSalas(): JSX.Element {
         rotulo="Nome"
         id="nome"
         value={formulario.nome}
-        onChange={(evento) => preencherCampo("nome", evento.target.value)}
+        onChange={(evento: ChangeEvent<HTMLInputElement>) => preencherCampo("nome", evento.target.value)}
         mensagemDeErro={errosDoFormulario.errosPorCampo.nome}
       />
       <CampoDeSelecao
@@ -69,7 +69,7 @@ export function PaginaDeSalas(): JSX.Element {
         id="idBloco"
         opcoes={opcoesDeBloco}
         value={formulario.idBloco}
-        onChange={(evento) => preencherCampo("idBloco", evento.target.value)}
+        onChange={(evento: ChangeEvent<HTMLSelectElement>) => preencherCampo("idBloco", evento.target.value)}
         mensagemDeErro={errosDoFormulario.errosPorCampo.idBloco}
       />
       <CampoDeFormulario
@@ -78,7 +78,7 @@ export function PaginaDeSalas(): JSX.Element {
         type="number"
         min={1}
         value={formulario.capacidade}
-        onChange={(evento) => preencherCampo("capacidade", evento.target.value)}
+        onChange={(evento: ChangeEvent<HTMLInputElement>) => preencherCampo("capacidade", evento.target.value)}
         mensagemDeErro={errosDoFormulario.errosPorCampo.capacidade}
       />
       <CampoDeFormulario
@@ -88,14 +88,14 @@ export function PaginaDeSalas(): JSX.Element {
         min={0}
         step="0.01"
         value={formulario.precoLocacao}
-        onChange={(evento) => preencherCampo("precoLocacao", evento.target.value)}
+        onChange={(evento: ChangeEvent<HTMLInputElement>) => preencherCampo("precoLocacao", evento.target.value)}
         mensagemDeErro={errosDoFormulario.errosPorCampo.precoLocacao}
       />
       <CampoDeFormulario
         rotulo="Descrição (opcional)"
         id="descricao"
         value={formulario.descricao}
-        onChange={(evento) => preencherCampo("descricao", evento.target.value)}
+        onChange={(evento: ChangeEvent<HTMLInputElement>) => preencherCampo("descricao", evento.target.value)}
         mensagemDeErro={errosDoFormulario.errosPorCampo.descricao}
       />
     </PainelDeCadastro>

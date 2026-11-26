@@ -1,8 +1,8 @@
-import type { JSX } from "react";
+import type { JSX, ChangeEvent } from "react";
 import { clienteSchema, type DadosDeCliente } from "shared";
 import { CampoDeFormulario } from "../components/CampoDeFormulario";
 import { PainelDeCadastro, type Coluna } from "../components/PainelDeCadastro";
-import { useTelaDeCadastro } from "../hooks/useTelaDeCadastro";
+import { useTelaDeCadastro, type TelaDeCadastro } from "../hooks/useTelaDeCadastro";
 import { clienteService } from "../services/recursosService";
 import type { Cliente } from "../types/registros";
 import { formatarCpf } from "../utilitarios/formatacao";
@@ -23,13 +23,13 @@ function montarFormulario({ nome, cpf, email, telefone }: Cliente): FormularioDe
 }
 
 export function PaginaDeClientes(): JSX.Element {
-  const tela = useTelaDeCadastro<Cliente, DadosDeCliente, FormularioDeCliente>({
+  const tela: TelaDeCadastro<Cliente, FormularioDeCliente> = useTelaDeCadastro<Cliente, DadosDeCliente, FormularioDeCliente>({
     servico: clienteService,
     schema: clienteSchema,
     formularioVazio,
     montarFormulario,
   });
-  const { formulario, errosDoFormulario, preencherCampo } = tela;
+  const { formulario, errosDoFormulario, preencherCampo }: TelaDeCadastro<Cliente, FormularioDeCliente> = tela;
 
   return (
     <PainelDeCadastro
@@ -43,7 +43,7 @@ export function PaginaDeClientes(): JSX.Element {
         rotulo="Nome"
         id="nome"
         value={formulario.nome}
-        onChange={(evento) => preencherCampo("nome", evento.target.value)}
+        onChange={(evento: ChangeEvent<HTMLInputElement>) => preencherCampo("nome", evento.target.value)}
         mensagemDeErro={errosDoFormulario.errosPorCampo.nome}
       />
       <CampoDeFormulario
@@ -52,7 +52,7 @@ export function PaginaDeClientes(): JSX.Element {
         inputMode="numeric"
         placeholder="000.000.000-00"
         value={formulario.cpf}
-        onChange={(evento) => preencherCampo("cpf", evento.target.value)}
+        onChange={(evento: ChangeEvent<HTMLInputElement>) => preencherCampo("cpf", evento.target.value)}
         mensagemDeErro={errosDoFormulario.errosPorCampo.cpf}
       />
       <CampoDeFormulario
@@ -60,7 +60,7 @@ export function PaginaDeClientes(): JSX.Element {
         id="email"
         type="email"
         value={formulario.email}
-        onChange={(evento) => preencherCampo("email", evento.target.value)}
+        onChange={(evento: ChangeEvent<HTMLInputElement>) => preencherCampo("email", evento.target.value)}
         mensagemDeErro={errosDoFormulario.errosPorCampo.email}
       />
       <CampoDeFormulario
@@ -68,7 +68,7 @@ export function PaginaDeClientes(): JSX.Element {
         id="telefone"
         type="tel"
         value={formulario.telefone}
-        onChange={(evento) => preencherCampo("telefone", evento.target.value)}
+        onChange={(evento: ChangeEvent<HTMLInputElement>) => preencherCampo("telefone", evento.target.value)}
         mensagemDeErro={errosDoFormulario.errosPorCampo.telefone}
       />
     </PainelDeCadastro>

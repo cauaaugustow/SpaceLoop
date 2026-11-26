@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import type { ZodSafeParseResult } from "zod";
 import type { ZodType } from "zod";
 import type { ServicoDeCrud } from "../services/servicoDeCrud";
 import type { Registro } from "../types/registros";
@@ -69,7 +70,7 @@ export function useTelaDeCadastro<RegistroDaTela extends Registro, Dados, Formul
 
   async function salvar(evento: FormEvent<HTMLFormElement>): Promise<void> {
     evento.preventDefault();
-    const validacao = schema.safeParse(formulario);
+    const validacao: ZodSafeParseResult<Dados> = schema.safeParse(formulario);
     if (!validacao.success) {
       setErrosDoFormulario(mapearErrosDeValidacao(validacao.error));
       return;
