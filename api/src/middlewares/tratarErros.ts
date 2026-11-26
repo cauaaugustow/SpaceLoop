@@ -3,7 +3,7 @@ import { ZodError } from "zod";
 
 export type ErroDeCampo = { campo: string; message: string };
 
-type ErroDaAplicacao = Error & { statusCode?: number; campo?: string };
+type ErroDaAplicacao = Error & { statusCode?: number; campo?: string; type?: string };
 
 function listarErrosPorCampo(erro: ZodError): ErroDeCampo[] {
   const mensagensPorCampo: Map<string, string> = new Map();
@@ -20,7 +20,16 @@ export function tratarErros(erro: ErroDaAplicacao, req: Request, res: Response, 
     return;
   }
 
-  const message: string = erro.statusCode ? erro.message : "Erro interno do servidor";
+  if (erro.type === "entity.parse.failed") {
+    res.status(400).json({ message: "JSON inválido" });
+    return;
+  }
+
+  const statusCode: number = erro.statusCode || 500;
+  const isErroInterno: boolean = statusCode >= 500;
+  if (isErroInterno) console.error(erro);
+
+  const message: string = isErroInterno ? "Erro interno do servidor" : erro.message;
   const errors: ErroDeCampo[] | undefined = erro.campo ? [{ campo: erro.campo, message }] : undefined;
-  res.status(erro.statusCode || 500).json({ message, errors });
+  res.status(statusCode).json({ message, errors });
 }
