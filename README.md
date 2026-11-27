@@ -6,8 +6,26 @@ Sistema de gestão de reservas de salas. Quem usa o sistema cadastra os blocos, 
 
 ## Integrantes
 
-- Cauã Augusto Machado de Negreiros  RGM: 38363194 - Front e back em javascript
-- Leonardo Lucas de Brito Silva RGM: 38061805 - Dockerização do banco Postgresql, adição de novas entidades no banco, refatoração de código e revisão para se adequar aos requisitos
+### Cauã Augusto Machado de Negreiros — RGM 38363194
+
+Desenvolveu a primeira versão do sistema, em JavaScript:
+
+- API com Express e Prisma (banco SQLite), organizada em camadas, com validação em Zod.
+- Cadastro e login com senha protegida por bcrypt e autenticação por token JWT.
+- Funcionalidades de usuários, salas e reservas, com permissões de administrador e regras de reserva.
+- Interface em React, com as telas de login, cadastro, área do usuário e painel administrativo, consumindo a API com Axios.
+
+### Leonardo Lucas de Brito Silva — RGM 38061805
+
+Refatorou o sistema e o adequou aos requisitos do projeto:
+
+- Conversão da API e do frontend de JavaScript para TypeScript.
+- Reorganização em três pacotes (`shared`, `api` e `frontend`), com os schemas Zod compartilhados entre a API e o frontend.
+- Migração do banco de SQLite para PostgreSQL, com configuração do Docker Compose, migration e seed.
+- Novas tabelas de blocos e clientes e CRUD completo de blocos, salas, clientes e reservas.
+- Validação com mensagem por campo, tratamento dos erros e documentação da API no Swagger.
+- Telas de gestão com busca, criação, edição e exclusão com confirmação.
+- Testes da API e instruções de execução no README.
 
 ## Tecnologias
 
