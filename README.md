@@ -1,4 +1,4 @@
-**Vídeo de apresentação:** _link a adicionar_
+**Vídeo de apresentação:** https://drive.google.com/file/d/139ixe-JWdGUA8oV5QEJ-ZzOGX_dJnIRD/view?usp=drive_link
 
 # SpaceLoop
 
@@ -6,7 +6,8 @@ Sistema de gestão de reservas de salas. Quem usa o sistema cadastra os blocos, 
 
 ## Integrantes
 
-_Nome completo, RGM e o que cada integrante fez: a adicionar._
+- Cauã Augusto Machado de Negreiros  RGM: 38363194 - Front e back em javascript
+- Leonardo Lucas de Brito Silva RGM: 38061805 - Dockerização do banco Postgresql, adição de novas entidades no banco, refatoração de código e revisão para se adequar aos requisitos
 
 ## Tecnologias
 
